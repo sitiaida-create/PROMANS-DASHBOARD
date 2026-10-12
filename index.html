@@ -85,7 +85,7 @@
                     <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">PMMD - PERFORMANCE DASHBOARD</h1>
                     <p class="text-xs text-slate-500 hidden sm:flex items-center space-x-1">
                         <span>Sumber Aktif:</span>
-                        <span class="font-mono font-semibold text-utm-maroon bg-rose-50 px-1.5 py-0.5 rounded" id="headerFileBadge">Data Performan PMMD Jan hingga 26 Ogos.xlsx</span>
+                        <span class="font-mono font-semibold text-utm-maroon bg-violet-50 px-1.5 py-0.5 rounded" id="headerFileBadge">Data Performan PMMD Jan hingga 26 Ogos.xlsx</span>
                     </p>
                 </div>
 
@@ -120,19 +120,19 @@
                 </div>
 
                 <nav class="flex md:flex-col gap-1.5 overflow-x-auto md:overflow-visible pb-1 md:pb-0">
-                    <button onclick="switchTab('kecekapan')" id="tabBtn-kecekapan" class="tab-btn active w-full text-left inline-flex items-center space-x-2.5 px-3.5 py-2.5 text-xs font-semibold rounded-xl border-l-4 md:border-l-4 border-b-2 md:border-b-0 border-transparent text-slate-600 hover:text-utm-maroon hover:bg-white md:hover:bg-rose-50/50 transition whitespace-nowrap md:whitespace-normal">
+                    <button onclick="switchTab('kecekapan')" id="tabBtn-kecekapan" class="tab-btn active w-full text-left inline-flex items-center space-x-2.5 px-3.5 py-2.5 text-xs font-semibold rounded-xl border-l-4 md:border-l-4 border-b-2 md:border-b-0 border-transparent text-slate-600 hover:text-utm-maroon hover:bg-white md:hover:bg-violet-50/70 transition whitespace-nowrap md:whitespace-normal">
                         <i data-lucide="gauge" class="w-4 h-4 shrink-0"></i>
                         <span>Kecekapan Proses & Semakan</span>
                     </button>
-                    <button onclick="switchTab('perbandingan')" id="tabBtn-perbandingan" class="tab-btn w-full text-left inline-flex items-center space-x-2.5 px-3.5 py-2.5 text-xs font-semibold rounded-xl border-l-4 md:border-l-4 border-b-2 md:border-b-0 border-transparent text-slate-600 hover:text-utm-maroon hover:bg-white md:hover:bg-rose-50/50 transition whitespace-nowrap md:whitespace-normal">
+                    <button onclick="switchTab('perbandingan')" id="tabBtn-perbandingan" class="tab-btn w-full text-left inline-flex items-center space-x-2.5 px-3.5 py-2.5 text-xs font-semibold rounded-xl border-l-4 md:border-l-4 border-b-2 md:border-b-0 border-transparent text-slate-600 hover:text-utm-maroon hover:bg-white md:hover:bg-violet-50/70 transition whitespace-nowrap md:whitespace-normal">
                         <i data-lucide="git-compare" class="w-4 h-4 shrink-0"></i>
                         <span>Perbandingan Siri</span>
                     </button>
-                    <button onclick="switchTab('gra')" id="tabBtn-gra" class="tab-btn w-full text-left inline-flex items-center space-x-2.5 px-3.5 py-2.5 text-xs font-semibold rounded-xl border-l-4 md:border-l-4 border-b-2 md:border-b-0 border-transparent text-slate-600 hover:text-utm-maroon hover:bg-white md:hover:bg-rose-50/50 transition whitespace-nowrap md:whitespace-normal">
+                    <button onclick="switchTab('gra')" id="tabBtn-gra" class="tab-btn w-full text-left inline-flex items-center space-x-2.5 px-3.5 py-2.5 text-xs font-semibold rounded-xl border-l-4 md:border-l-4 border-b-2 md:border-b-0 border-transparent text-slate-600 hover:text-utm-maroon hover:bg-white md:hover:bg-violet-50/70 transition whitespace-nowrap md:whitespace-normal">
                         <i data-lucide="pie-chart" class="w-4 h-4 shrink-0"></i>
                         <span>Status Lantikan GRA</span>
                     </button>
-                    <button onclick="switchTab('semakan')" id="tabBtn-semakan" class="tab-btn w-full text-left inline-flex items-center space-x-2.5 px-3.5 py-2.5 text-xs font-semibold rounded-xl border-l-4 md:border-l-4 border-b-2 md:border-b-0 border-transparent text-slate-600 hover:text-utm-maroon hover:bg-white md:hover:bg-rose-50/50 transition whitespace-nowrap md:whitespace-normal">
+                    <button onclick="switchTab('semakan')" id="tabBtn-semakan" class="tab-btn w-full text-left inline-flex items-center space-x-2.5 px-3.5 py-2.5 text-xs font-semibold rounded-xl border-l-4 md:border-l-4 border-b-2 md:border-b-0 border-transparent text-slate-600 hover:text-utm-maroon hover:bg-white md:hover:bg-violet-50/70 transition whitespace-nowrap md:whitespace-normal">
                         <i data-lucide="search-check" class="w-4 h-4 shrink-0"></i>
                         <span>Semakan Permohonan</span>
                     </button>
@@ -156,7 +156,7 @@
 
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
                 <div class="flex items-center space-x-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-red-50 text-utm-maroon flex items-center justify-center font-bold">
+                    <div class="w-9 h-9 rounded-xl bg-violet-50 text-utm-maroon flex items-center justify-center font-bold">
                         <i data-lucide="filter" class="w-4 h-4"></i>
                     </div>
                     <div>
@@ -214,7 +214,7 @@
             </div>
 
             <!-- Banner status data aktif -->
-            <div id="fileStatusBanner" class="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-2.5 bg-rose-50/70 border border-rose-200/80 rounded-xl text-xs text-rose-950 gap-2">
+            <div id="fileStatusBanner" class="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-2.5 bg-violet-50/70 border border-violet-200/80 rounded-xl text-xs text-violet-950 gap-2">
                 <div class="flex items-center space-x-2">
                     <i data-lucide="file-spreadsheet" class="w-4 h-4 text-utm-maroon shrink-0"></i>
                     <span>Status Data: <strong id="currentDataSourceName">Templat Rasmi Asal (Data Performan PMMD Jan hingga 26 Ogos.xlsx)</strong></span>
@@ -1809,7 +1809,7 @@
             } else {
                 listGt15.slice(0, 5).forEach(item => {
                     const el = document.createElement('div');
-                    el.className = "flex items-center justify-between p-2 rounded-lg bg-white border border-rose-200/70 text-xs hover:border-rose-400 hover:bg-rose-50/50 cursor-pointer transition shadow-2xs group";
+                    el.className = "flex items-center justify-between p-2 rounded-lg bg-white border border-rose-200/70 text-xs hover:border-rose-400 hover:bg-violet-50/70 cursor-pointer transition shadow-2xs group";
                     el.onclick = () => openProcessCasesModal(item.proses, 'gt15');
                     el.title = `Klik untuk papar ${item.count} kes >15 hari bagi ${item.proses}`;
                     el.innerHTML = `
@@ -1819,7 +1819,7 @@
                         </div>
                         <div class="flex items-center space-x-2">
                             <span class="font-mono font-bold text-rose-900">${item.count.toLocaleString()} kes</span>
-                            <span class="text-[10px] text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded font-semibold border border-rose-200">${item.pct}%</span>
+                            <span class="text-[10px] text-rose-700 bg-violet-50 px-1.5 py-0.5 rounded font-semibold border border-rose-200">${item.pct}%</span>
                             <i data-lucide="chevron-right" class="w-3 h-3 text-rose-500 group-hover:translate-x-0.5 transition"></i>
                         </div>
                     `;
