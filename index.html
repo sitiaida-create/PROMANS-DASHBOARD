@@ -96,6 +96,10 @@
                         <span class="hidden sm:inline">Muat Naik Excel</span>
                     </label>
                     <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleExcelUpload(event)">
+                    <button onclick="loadGoogleSheetsCSV(true)" class="inline-flex items-center space-x-1.5 bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-1.5 rounded-xl text-xs font-semibold shadow-xs transition" title="Segarkan data daripada Google Sheets">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                        <span class="hidden sm:inline">Segarkan Data</span>
+                    </button>
 
                     <!-- Butang Muat Turun Templat Asal -->
                     <button onclick="downloadOfficialExcelTemplate()" class="inline-flex items-center space-x-1.5 bg-utm-maroon hover:bg-utm-dark text-white px-3 py-1.5 rounded-xl text-xs font-semibold shadow-xs transition" title="Muat Turun Templat Asal (.xlsx)">
@@ -931,6 +935,9 @@
     </div>
 
     <script>
+        // CONFIG / DATA SOURCE: pautan CSV diterbitkan daripada Google Sheets.
+        const GOOGLE_SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ3uEWGgTUJC0ZUfRcyPu1Qdx_ioxEixM2PjjtaBpTR7HWf26ZqXYi-_Lg8qP5v34Z-KgtE-xcNrS8q/pub?gid=2076582354&single=true&output=csv";
+
         // Data Asas Helaian 1: Kecekapan Proses (Jan - 26 Ogos)
         const rawJanOgosTemplateData = [
             { proses: "Aktiviti dalam negara", permohonan: 906, kelulusan: 795, pctKelulusan: 88, d1_7: 99.5, d8_14: 0.3, dgt15: 0.3 },
@@ -1907,6 +1914,116 @@
             lucide.createIcons();
         }
 
+        // Membaca CSV Google Sheets secara terus. Pengepala lajur dipadankan secara fleksibel.
+        function parseCSVRows(text) {
+            const rows = [];
+            let row = [], field = '', quoted = false;
+            for (let i = 0; i < text.length; i++) {
+                const ch = text[i], next = text[i + 1];
+                if (ch === '"' && quoted && next === '"') { field += '"'; i++; }
+                else if (ch === '"') quoted = !quoted;
+                else if (ch === ',' && !quoted) { row.push(field); field = ''; }
+                else if ((ch === '\\n' || ch === '\\r') && !quoted) {
+                    if (ch === '\\r' && next === '\\n') i++;
+                    row.push(field); field = '';
+                    if (row.some(v => String(v).trim() !== '')) rows.push(row);
+                    row = [];
+                } else field += ch;
+            }
+            if (field.length || row.length) { row.push(field); if (row.some(v => String(v).trim() !== '')) rows.push(row); }
+            return rows;
+        }
+
+        function normalizeCSVHeader(value) {
+            return String(value ?? '').trim().toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+        }
+
+        function loadGoogleSheetsCSV(showMessage = false) {
+            const refreshButton = document.querySelector('button[onclick="loadGoogleSheetsCSV(true)"]');
+            if (refreshButton) refreshButton.disabled = true;
+            fetch(GOOGLE_SHEETS_CSV_URL + (GOOGLE_SHEETS_CSV_URL.includes('?') ? '&' : '?') + '_=' + Date.now(), { cache: 'no-store' })
+                .then(response => { if (!response.ok) throw new Error('HTTP ' + response.status); return response.text(); })
+                .then(csvText => {
+                    const rows = parseCSVRows(csvText);
+                    if (rows.length < 2) throw new Error('CSV kosong atau tidak mempunyai baris data.');
+                    const headers = rows[0].map(normalizeCSVHeader);
+                    const idx = (...aliases) => headers.findIndex(h => aliases.some(a => h === normalizeCSVHeader(a) || h.includes(normalizeCSVHeader(a))));
+                    const val = (row, ...aliases) => { const i = idx(...aliases); return i >= 0 ? String(row[i] ?? '').trim() : ''; };
+                    const num = (row, ...aliases) => { const raw = val(row, ...aliases).replace(/[% ,]/g, ''); const n = Number(raw); return Number.isFinite(n) ? n : 0; };
+                    const has = (...aliases) => idx(...aliases) >= 0;
+                    const dataRows = rows.slice(1);
+                    let updatedSections = [];
+
+                    const processCol = has('proses', 'nama proses', 'kategori proses', 'process') ? ['proses', 'nama proses', 'kategori proses', 'process'] : null;
+                    const appCol = has('permohonan', 'jumlah permohonan', 'bilangan permohonan', 'applications', 'jumlah') ? ['permohonan', 'jumlah permohonan', 'bilangan permohonan', 'applications', 'jumlah'] : null;
+                    if (processCol && appCol && (has('kelulusan', 'diluluskan', 'approved', 'jumlah kelulusan') || has('d1_7', '1-7 hari', '1 hingga 7 hari'))) {
+                        const mapped = dataRows.map(row => ({
+                            proses: val(row, ...processCol),
+                            permohonan: num(row, ...appCol),
+                            kelulusan: num(row, 'kelulusan', 'diluluskan', 'approved', 'jumlah kelulusan'),
+                            pctKelulusan: num(row, 'pctKelulusan', '% kelulusan', 'peratus kelulusan', 'kadar kelulusan') || (num(row, ...appCol) ? Math.round(num(row, 'kelulusan', 'diluluskan', 'approved', 'jumlah kelulusan') / num(row, ...appCol) * 100) : 0),
+                            d1_7: num(row, 'd1_7', '1-7 hari', '1 hingga 7 hari', '1-7'),
+                            d8_14: num(row, 'd8_14', '8-14 hari', '7-14 hari', '8 hingga 14 hari', '8-14'),
+                            dgt15: num(row, 'dgt15', '>15 hari', 'lebih 15 hari', 'melebihi 15 hari', '15 hari ke atas')
+                        })).filter(d => d.proses);
+                        if (mapped.length) { currentJanOgosData = mapped; updatedSections.push('Kecekapan Proses'); }
+                    }
+
+                    const comparisonHeadersPresent = has('p11', 'permohonan bil 11', 'permohonan siri 11') && has('p12', 'permohonan bil 12', 'permohonan siri 12');
+                    if (processCol && comparisonHeadersPresent) {
+                        const mapped = dataRows.map(row => {
+                            const p11 = num(row, 'p11', 'permohonan bil 11', 'permohonan siri 11');
+                            const k11 = num(row, 'k11', 'kelulusan bil 11', 'diluluskan bil 11', 'kelulusan siri 11');
+                            const p12 = num(row, 'p12', 'permohonan bil 12', 'permohonan siri 12');
+                            const k12 = num(row, 'k12', 'kelulusan bil 12', 'diluluskan bil 12', 'kelulusan siri 12');
+                            return { proses: val(row, ...processCol), p11, k11, p12, k12, dP: p12-p11, dK: k12-k11 };
+                        }).filter(d => d.proses);
+                        if (mapped.length) { currentComparisonData = mapped; updatedSections.push('Perbandingan Siri'); }
+                    }
+
+                    if (has('status', 'status lantikan', 'status permohonan') && has('b12', 'bil 12', 'siri 12', 'jumlah semasa')) {
+                        const mapped = dataRows.map(row => {
+                            const b11 = num(row, 'b11', 'bil 11', 'siri 11', 'jumlah bil 11');
+                            const b12 = num(row, 'b12', 'bil 12', 'siri 12', 'jumlah semasa');
+                            return { status: val(row, 'status', 'status lantikan', 'status permohonan'), b11, b12, pct: num(row, 'pct', 'peratus', 'percentage') || 0, diff: b12-b11, color: '#7A1315' };
+                        }).filter(d => d.status);
+                        if (mapped.length) { currentGraData = mapped; updatedSections.push('Status Lantikan GRA'); }
+                    }
+
+                    if (has('ref', 'no rujukan', 'nombor rujukan', 'reference') && has('applicant', 'pemohon', 'nama pemohon')) {
+                        const mapped = dataRows.map(row => {
+                            const status = val(row, 'status', 'status semakan') || 'Dalam proses';
+                            const duration = val(row, 'duration', 'tempoh', 'tempoh masa', 'tempoh hari') || '-';
+                            return { ref: val(row, 'ref', 'no rujukan', 'nombor rujukan', 'reference'), type: val(row, 'type', 'jenis permohonan', 'kategori permohonan', 'proses'), applicant: val(row, 'applicant', 'pemohon', 'nama pemohon'), date: val(row, 'date', 'tarikh dihantar', 'tarikh permohonan', 'tarikh diterima'), duration, status, step: /approved|lulus/i.test(status) ? 4 : 2, logs: [ 'Rekod dimuatkan daripada Google Sheets.', 'Status semasa: ' + status ] };
+                        }).filter(d => d.ref && d.applicant);
+                        if (mapped.length) { sampleApplications.splice(0, sampleApplications.length, ...mapped); updatedSections.push('Semakan Permohonan'); }
+                    }
+
+                    if (!updatedSections.length) {
+                        throw new Error('Pengepala CSV tidak sepadan dengan medan dashboard. Semak sama ada tab CSV mempunyai lajur proses/permohonan, perbandingan Bil. 11/12, status GRA atau butiran permohonan.');
+                    }
+                    const stamp = new Date().toLocaleString('ms-MY');
+                    const sourceText = 'Google Sheets CSV · Dikemas kini ' + stamp;
+                    const sourceLabel = document.getElementById('currentDataSourceName');
+                    const badge = document.getElementById('headerFileBadge');
+                    if (sourceLabel) sourceLabel.innerText = sourceText;
+                    if (badge) badge.innerText = 'Google Sheets CSV';
+                    applyGlobalFilters();
+                    populateTables();
+                    updateCharts();
+                    if (showMessage) showToast('Data disegarkan. Bahagian dikemas kini: ' + updatedSections.join(', '));
+                })
+                .catch(error => {
+                    console.error('Ralat memuatkan Google Sheets CSV:', error);
+                    if (showMessage) showToast('Gagal memuatkan CSV: ' + error.message, 'error');
+                    else {
+                        const sourceLabel = document.getElementById('currentDataSourceName');
+                        if (sourceLabel) sourceLabel.innerText = 'Gagal memuatkan Google Sheets CSV — data templat dikekalkan';
+                    }
+                })
+                .finally(() => { if (refreshButton) refreshButton.disabled = false; });
+        }
+
         function handleExcelUpload(event) {
             const file = event.target.files[0];
             if (file) {
@@ -2154,6 +2271,9 @@
             initCharts();
             populateTables();
             lucide.createIcons();
+            loadGoogleSheetsCSV(false);
+            // Semak kemas kini sumber secara berkala tanpa perlu muat semula halaman.
+            setInterval(() => loadGoogleSheetsCSV(false), 5 * 60 * 1000);
         };
     </script>
 </body>
