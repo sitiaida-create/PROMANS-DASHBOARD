@@ -8,7 +8,7 @@
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -34,10 +34,11 @@
         }
     </script>
     
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js CDN & ChartDataLabels Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     
-    <!-- SheetJS (xlsx) untuk sokongan baca & muat turun Excel sebenar -->
+    <!-- SheetJS (xlsx) untuk bacaan fail dan eksport fail Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <!-- Lucide Icons -->
@@ -76,32 +77,46 @@
         }
     </style>
 </head>
-<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="text-slate-800 antialiased min-h-screen flex flex-col bg-slate-50/50">
 
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs w-full">
-        <div class="w-full px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div>
-                    <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">PROMANS - Project Managements</h1>
-                    <p class="text-xs text-slate-500 hidden sm:flex items-center space-x-1">
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-2xs w-full">
+        <div class="w-full flex flex-col md:flex-row items-stretch">
+            <!-- Bahagian Jenama Header: lebar selaras dengan panel sidebar kiri -->
+            <div class="w-full md:w-64 lg:w-72 border-b md:border-b-0 md:border-r border-slate-200 p-3 sm:px-4 md:py-3.5 flex items-center shrink-0">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 flex items-center justify-center text-white font-extrabold text-base shadow-sm shrink-0">
+                        P
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-sm font-extrabold tracking-tight text-slate-900 leading-tight">PROMANS</div>
+                        <div class="text-[9.5px] font-extrabold tracking-wider uppercase text-indigo-600 leading-none mt-0.5">PROJECT MANAGEMENTS</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bahagian Tajuk & Butang Tindakan Header -->
+            <div class="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-3 flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+                <div class="min-w-0">
+                    <h1 class="text-base sm:text-lg lg:text-xl font-bold text-slate-900 leading-tight">Kecekapan Proses Permohonan &amp; Semakan Permohonan</h1>
+                    <p class="mt-0.5 text-xs sm:text-sm text-slate-500 leading-snug">Pusat Pengurusan Penyelidikan (RMC), Universiti Teknologi Malaysia</p>
                 </div>
 
-                <div class="flex items-center space-x-2 sm:space-x-2.5">
-                    <!-- Butang Muat Naik Fail Excel Tempatan -->
-                    <label for="excelFileInput" class="cursor-pointer inline-flex items-center space-x-1.5 bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-xl text-xs font-semibold shadow-xs transition">
-                        <i data-lucide="file-up" class="w-3.5 h-3.5"></i>
-                        <span class="hidden sm:inline">Muat Naik Excel</span>
-                    </label>
-                    <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleExcelUpload(event)">
-                    <button onclick="loadGoogleSheetsCSV(true)" class="inline-flex items-center space-x-1.5 bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-1.5 rounded-xl text-xs font-semibold shadow-xs transition" title="Segarkan data daripada Google Sheets">
-                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-                        <span class="hidden sm:inline">Segarkan Data</span>
+                <div class="flex items-center space-x-2 shrink-0">
+                    <!-- Butang Refresh (Statik & Tidak Bergerak) -->
+                    <button onclick="loadGoogleSheetsCSV(true)" id="btnSyncGoogleSheets" class="inline-flex items-center space-x-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 px-3.5 py-2 rounded-xl text-xs font-semibold shadow-2xs transition" title="Refresh data daripada Google Sheets">
+                        <i data-lucide="refresh-cw" id="iconSyncLive" class="w-3.5 h-3.5 text-slate-600"></i>
+                        <span>Refresh</span>
                     </button>
 
-                    <!-- Butang Muat Turun Templat Asal -->
-                    <button onclick="downloadOfficialExcelTemplate()" class="inline-flex items-center space-x-1.5 bg-utm-maroon hover:bg-utm-dark text-white px-3 py-1.5 rounded-xl text-xs font-semibold shadow-xs transition" title="Muat Turun Templat Asal (.xlsx)">
-                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                        <span class="hidden sm:inline">Muat Turun Templat</span>
+                    <!-- Butang Export CSV -->
+                    <button onclick="downloadOfficialExcelTemplate()" class="inline-flex items-center space-x-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 px-3.5 py-2 rounded-xl text-xs font-semibold shadow-2xs transition" title="Eksport data / Muat turun fail templat (.xlsx)">
+                        <i data-lucide="file-output" class="w-3.5 h-3.5 text-slate-600"></i>
+                        <span>Export CSV</span>
+                    </button>
+
+                    <!-- Butang Setting (Icon Gear) -->
+                    <button onclick="openConfigModal()" class="inline-flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 p-2 sm:px-2.5 py-2 rounded-xl text-xs font-semibold shadow-2xs transition" title="Konfigurasi Google Sheet">
+                        <i data-lucide="settings" class="w-4 h-4 text-slate-700"></i>
                     </button>
                 </div>
             </div>
@@ -119,7 +134,7 @@
                 <nav class="flex md:flex-col gap-1.5 overflow-x-auto md:overflow-visible pb-1 md:pb-0">
                     <button onclick="switchTab('kecekapan')" id="tabBtn-kecekapan" class="tab-btn active w-full text-left inline-flex items-center space-x-2.5 px-3.5 py-2.5 text-xs font-semibold rounded-xl border-l-4 md:border-l-4 border-b-2 md:border-b-0 border-transparent text-slate-600 hover:text-utm-maroon hover:bg-white md:hover:bg-rose-50/50 transition whitespace-nowrap md:whitespace-normal">
                         <i data-lucide="gauge" class="w-4 h-4 shrink-0"></i>
-                        <span>Kecekapan Proses & Semakan</span>
+                        <span>Kecekapan Proses &amp; Semakan</span>
                     </button>
                     <button onclick="switchTab('perbandingan')" id="tabBtn-perbandingan" class="tab-btn w-full text-left inline-flex items-center space-x-2.5 px-3.5 py-2.5 text-xs font-semibold rounded-xl border-l-4 md:border-l-4 border-b-2 md:border-b-0 border-transparent text-slate-600 hover:text-utm-maroon hover:bg-white md:hover:bg-rose-50/50 transition whitespace-nowrap md:whitespace-normal">
                         <i data-lucide="git-compare" class="w-4 h-4 shrink-0"></i>
@@ -135,9 +150,7 @@
                     </button>
                 </nav>
 
-        <!-- Kandungan Utama Papan Pemuka -->
-        <main class="flex-1 min-w-0 p-4 sm:p-6 lg:py-6 lg:px-8 space-y-6">
-
+            <!-- Bar Penapis Global -->
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
                 <div class="flex items-center space-x-2.5">
                     <div class="w-9 h-9 rounded-xl bg-red-50 text-utm-maroon flex items-center justify-center font-bold">
@@ -150,7 +163,7 @@
 
                 <div class="flex flex-wrap items-center gap-3">
                     <!-- Penapis 1: Bulan Semakan -->
-                    <div class="flex items-center space-x-2 min-w-[210px] flex-1 sm:flex-none">
+                    <div class="flex items-center space-x-2 min-w-[200px] flex-1 sm:flex-none">
                         <label for="filterBulan" class="text-xs font-semibold text-slate-600 flex items-center space-x-1">
                             <i data-lucide="calendar-range" class="w-3.5 h-3.5 text-slate-400"></i>
                             <span>Bulan:</span>
@@ -169,7 +182,7 @@
                     </div>
 
                     <!-- Penapis 2: Jenis Proses -->
-                    <div class="flex items-center space-x-2 min-w-[240px] flex-1 sm:flex-none">
+                    <div class="flex items-center space-x-2 min-w-[220px] flex-1 sm:flex-none">
                         <label for="filterProses" class="text-xs font-semibold text-slate-600 flex items-center space-x-1">
                             <i data-lucide="layers" class="w-3.5 h-3.5 text-slate-400"></i>
                             <span>Proses:</span>
@@ -197,17 +210,7 @@
                 </div>
             </div>
 
-            <!-- Banner status data aktif -->
-            <div id="fileStatusBanner" class="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-2.5 bg-rose-50/70 border border-rose-200/80 rounded-xl text-xs text-rose-950 gap-2">
-                <div class="flex items-center space-x-2">
-                    <i data-lucide="file-spreadsheet" class="w-4 h-4 text-utm-maroon shrink-0"></i>
-                    <span>Status Data: <strong id="currentDataSourceName">Templat Rasmi Asal (Data Performan PMMD Jan hingga 26 Ogos.xlsx)</strong></span>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <span class="text-[10px] font-bold uppercase bg-white border border-rose-200 px-2.5 py-0.5 rounded text-utm-maroon" id="activeFilterBadgeSummary">Semua Kategori (10 Proses)</span>
-                </div>
-            </div>
-
+            <!-- TAB 1: KECEKAPAN PROSES & SEMAKAN -->
             <div id="tabContent-kecekapan" class="space-y-6">
                 <!-- 4 Kad Metrik Utama (KPI Cards) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -274,7 +277,6 @@
                     </div>
                 </div>
 
-                <!-- Jalur Metrik Khas: Permohonan 7-14 Hari & >15 Hari -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div onclick="openProcessCasesModal('Pelantikan GRA/SRA', '8-14')" class="bg-amber-50/60 hover:bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center justify-between cursor-pointer transition shadow-2xs group" title="Klik untuk melihat kes dalam julat 7-14 hari">
                         <div class="flex items-center space-x-3.5">
@@ -305,7 +307,7 @@
                             </div>
                             <div>
                                 <div class="flex items-center space-x-1.5">
-                                    <span class="text-xs font-bold text-rose-950 uppercase tracking-wider">Permohonan Lanjut Tempoh (Extension) (>15 Hari)</span>
+                                    <span class="text-xs font-bold text-rose-950 uppercase tracking-wider">Permohonan Lanjut Tempoh (Extension) (&gt;15 Hari)</span>
                                     <i data-lucide="external-link" class="w-3 h-3 text-rose-600 opacity-0 group-hover:opacity-100 transition"></i>
                                 </div>
                                 <div class="flex items-baseline space-x-2 mt-0.5">
@@ -316,58 +318,66 @@
                         </div>
                         <div class="text-right hidden sm:block">
                             <span class="text-[11px] text-rose-800 font-medium block">Penyumbang Terbesar:</span>
-                            <span class="text-xs font-bold text-rose-950" id="kpiTopGt15">Semakan Progress & End Report</span>
+                            <span class="text-xs font-bold text-rose-950" id="kpiTopGt15">Semakan Progress &amp; End Report</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <!-- Graf Bar Bertumpuk: Tempoh Hari -->
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                        <div class="flex items-center justify-between mb-4">
-                            <div>
-                                <h3 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-                                    <span>% Proses dan Semakan Permohonan (Jan - 26 Ogos)</span>
-                                </h3>
-                                <p class="text-xs text-slate-400">Pecahan nisbah masa: 1-7 Hari, 8-14 Hari & >15 Hari</p>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <div>
+                                    <h3 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                                        <span>% Proses dan Semakan Permohonan (Jan - 26 Ogos)</span>
+                                    </h3>
+                                    <p class="text-xs text-slate-400 mt-0.5">Angka data dipaparkan secara langsung pada setiap segmen bar</p>
+                                </div>
                             </div>
-                        </div>
-                        <div class="h-64 sm:h-72">
-                            <canvas id="timeBreakdownChart"></canvas>
-                        </div>
-                        <div class="mt-4 flex flex-wrap items-center justify-center gap-4 text-xs font-medium text-slate-600">
-                            <div class="flex items-center space-x-1.5">
-                                <span class="w-3 h-3 rounded-sm bg-blue-600"></span>
-                                <span>(%) 1-7 Hari</span>
+                            
+                            <div class="h-64 sm:h-72 my-2">
+                                <canvas id="timeBreakdownChart"></canvas>
                             </div>
-                            <div class="flex items-center space-x-1.5">
-                                <span class="w-3 h-3 rounded-sm bg-amber-500"></span>
-                                <span>(%) 8-14 Hari</span>
-                            </div>
-                            <div class="flex items-center space-x-1.5">
-                                <span class="w-3 h-3 rounded-sm bg-emerald-600"></span>
-                                <span>(%) >15 Hari</span>
+
+                            <div class="flex flex-wrap items-center justify-center gap-4 text-xs font-medium text-slate-600">
+                                <div class="flex items-center space-x-1.5">
+                                    <span class="w-3 h-3 rounded-sm bg-blue-600"></span>
+                                    <span>(%) 1-7 Hari</span>
+                                </div>
+                                <div class="flex items-center space-x-1.5">
+                                    <span class="w-3 h-3 rounded-sm bg-amber-500"></span>
+                                    <span>(%) 8-14 Hari</span>
+                                </div>
+                                <div class="flex items-center space-x-1.5">
+                                    <span class="w-3 h-3 rounded-sm bg-emerald-600"></span>
+                                    <span>(%) &gt;15 Hari</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Graf Bar Mendatar: % Kelulusan -->
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                        <div class="flex items-center justify-between mb-4">
-                            <div>
-                                <h3 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
-                                    <span>% Kelulusan Mengikut Kategori Proses</span>
-                                </h3>
-                                <p class="text-xs text-slate-400">Peringkat peratusan kelulusan dari 88% hingga 100%</p>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <div>
+                                    <h3 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                                        <span>% Kelulusan Mengikut Kategori Proses</span>
+                                    </h3>
+                                    <p class="text-xs text-slate-400 mt-0.5">Peratusan (%) kelulusan dicatat terus pada hujung setiap bar</p>
+                                </div>
                             </div>
-                        </div>
-                        <div class="h-64 sm:h-72">
-                            <canvas id="approvalRateChart"></canvas>
-                        </div>
-                        <div class="mt-4 text-center text-xs text-slate-500">
-                            Nota: Semakan Progress Report, End Report, dan Tuntutan SRA mengekalkan prestasi 100%.
+                            
+                            <div class="h-64 sm:h-72 my-2">
+                                <canvas id="approvalRateChart"></canvas>
+                            </div>
+
+                            <div class="text-center text-xs text-slate-500 mb-1">
+                                Nota: Semakan Progress Report, End Report, dan Tuntutan SRA mengekalkan prestasi kelulusan 100%.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -378,10 +388,10 @@
                             <div class="flex items-center space-x-2">
                                 <h3 class="text-sm font-bold text-slate-900">Jadual Format Templat: Kecekapan Proses dan Semakan Permohonan</h3>
                                 <span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-200 flex items-center gap-1">
-                                    <i data-lucide="mouse-pointer-click" class="w-3 h-3"></i> Interaktif: Klik mana-mana baris untuk senarai kes
+                                    <i data-lucide="mouse-pointer-click" class="w-3 h-3"></i> Interaktif: Klik baris untuk senarai kes
                                 </span>
                             </div>
-                            <p class="text-xs text-slate-400 mt-0.5">Data bersumberkan Helaian 1 templat Excel (Data sehingga 26-08-2026). Tekan baris atau sel tempoh hari untuk melihat rekod fail.</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Data bersumberkan Helaian 1 templat Excel. Tekan mana-mana baris untuk melihat rekod audit fail.</p>
                         </div>
                         <div class="relative w-full sm:w-64">
                             <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
@@ -399,17 +409,13 @@
                                     <th class="py-3 px-3 text-center">% Kelulusan</th>
                                     <th class="py-3 px-3 text-center bg-blue-50/70 text-blue-900">(%) 1-7 Hari</th>
                                     <th class="py-3 px-3 text-center bg-amber-50/70 text-amber-900">(%) 7-14 Hari [Kes]</th>
-                                    <th class="py-3 px-3 text-center bg-rose-50/70 text-rose-900">(%) >15 Hari [Kes]</th>
+                                    <th class="py-3 px-3 text-center bg-rose-50/70 text-rose-900">(%) &gt;15 Hari [Kes]</th>
                                     <th class="py-3 px-3 text-center">Tindakan</th>
                                 </tr>
                             </thead>
-                            <tbody id="janOgosTableBody" class="divide-y divide-slate-100">
-                                <!-- Diisi secara dinamik melalui JS -->
-                            </tbody>
+                            <tbody id="janOgosTableBody" class="divide-y divide-slate-100"></tbody>
                             <tfoot class="bg-slate-100 font-bold text-slate-900 border-t border-slate-300">
-                                <tr id="janOgosTableTotalRow">
-                                    <!-- Diisi secara dinamik -->
-                                </tr>
+                                <tr id="janOgosTableTotalRow"></tr>
                             </tfoot>
                         </table>
                     </div>
@@ -420,9 +426,9 @@
                         <div>
                             <h3 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
                                 <i data-lucide="layers" class="w-4 h-4 text-utm-maroon"></i>
-                                <span>Perincian Khas: Permohonan Mengambil Masa 7-14 Hari vs >15 Hari</span>
+                                <span>Perincian Khas: Permohonan Mengambil Masa 7-14 Hari vs &gt;15 Hari</span>
                             </h3>
-                            <p class="text-xs text-slate-500">Pecahan bilangan kes sebenar, analisis faktor kelewatan, serta langkah penyelesaian bagi melicinkan pengurusan penyelidikan UTM.</p>
+                            <p class="text-xs text-slate-500">Pecahan bilangan kes sebenar, analisis faktor kelewatan, serta langkah penyelesaian bagi pengurusan penyelidikan UTM.</p>
                         </div>
                         <span class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700">Jumlah Terlibat: <strong id="combinedDelayedTotal">487 Kes</strong> (11.4%)</span>
                     </div>
@@ -438,25 +444,20 @@
                                     </div>
                                     <span class="text-xs font-extrabold text-amber-800 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-lg" id="badgeSum7_14">226 Permohonan</span>
                                 </div>
-
                                 <p class="text-xs text-slate-600 mb-3">
                                     Kategori proses dalam julat sederhana (melebihi piagam 7 hari namun diselesaikan dalam tempoh 2 minggu bekerja):
                                 </p>
-
-                                <div class="space-y-2 mb-4" id="listProcess7_14">
-                                    <!-- Diisi secara dinamik melalui JS -->
-                                </div>
+                                <div class="space-y-2 mb-4" id="listProcess7_14"></div>
                             </div>
-
                             <div class="p-3 bg-white rounded-xl border border-amber-200/80 text-xs text-amber-900 space-y-1.5 shadow-2xs">
                                 <div class="font-bold flex items-center space-x-1.5 text-amber-950">
                                     <i data-lucide="info" class="w-3.5 h-3.5 text-amber-600"></i>
-                                    <span>Punca & Faktor Pemprosesan 7-14 Hari:</span>
+                                    <span>Punca &amp; Faktor Pemprosesan 7-14 Hari:</span>
                                 </div>
                                 <ul class="list-disc list-inside space-y-1 text-[11px] text-slate-600">
-                                    <li><strong>Pelantikan GRA/SRA (149 kes / 17%)</strong>: Keperluan semakan baki vot peruntukan geran serta pengesahan pendaftaran pascasiswazah aktif oleh SPS.</li>
+                                    <li><strong>Pelantikan GRA/SRA (149 kes / 17%)</strong>: Keperluan semakan baki vot peruntukan geran serta pengesahan pendaftaran aktif oleh SPS.</li>
                                     <li><strong>Perlanjutan Tempoh (43 kes / 13%)</strong>: Menunggu ulasan dan sokongan bertulis daripada Pengarah Pusat Penyelidikan / Dekan Fakulti.</li>
-                                    <li><strong>Pelantikan RA/RO (14 kes / 7%)</strong>: Semakan kelayakan sijil akademik & kontrak perjawatan pembantu penyelidik.</li>
+                                    <li><strong>Pelantikan RA/RO (14 kes / 7%)</strong>: Semakan kelayakan sijil akademik &amp; kontrak perjawatan pembantu penyelidik.</li>
                                 </ul>
                             </div>
                         </div>
@@ -467,76 +468,70 @@
                                 <div class="flex items-center justify-between mb-3">
                                     <div class="flex items-center space-x-2">
                                         <span class="w-3 h-3 rounded-md bg-rose-600"></span>
-                                        <h4 class="text-xs font-bold text-rose-950 uppercase">Permohonan Mengambil Masa Lebih 15 Hari (>15 Hari)</h4>
+                                        <h4 class="text-xs font-bold text-rose-950 uppercase">Permohonan Mengambil Masa Lebih 15 Hari (&gt;15 Hari)</h4>
                                     </div>
                                     <span class="text-xs font-extrabold text-rose-800 bg-rose-100 border border-rose-300 px-2 py-0.5 rounded-lg" id="badgeSumGt15">261 Permohonan</span>
                                 </div>
-
                                 <p class="text-xs text-slate-600 mb-3">
-                                    Kategori proses yang melepasi tempoh 15 hari bekerja dan memerlukan pemantauan intensif / verifikasi audit luar:
+                                    Kategori proses yang melepasi tempoh 15 hari bekerja dan memerlukan verifikasi audit:
                                 </p>
-
-                                <div class="space-y-2 mb-4" id="listProcessGt15">
-                                    <!-- Diisi secara dinamik melalui JS -->
-                                </div>
+                                <div class="space-y-2 mb-4" id="listProcessGt15"></div>
                             </div>
-
                             <div class="p-3 bg-white rounded-xl border border-rose-200/80 text-xs text-rose-900 space-y-1.5 shadow-2xs">
                                 <div class="font-bold flex items-center space-x-1.5 text-rose-950">
                                     <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-rose-600"></i>
-                                    <span>Punca & Justifikasi Tempoh >15 Hari:</span>
+                                    <span>Punca &amp; Justifikasi Tempoh &gt;15 Hari:</span>
                                 </div>
                                 <ul class="list-disc list-inside space-y-1 text-[11px] text-slate-600">
-                                    <li><strong>Semakan End Report (49 kes / 38%)</strong>: Menuntut pengesahan penerbitan berwasit (Scopus/WoS), fail permohonan paten, serta semakan audit kewangan penutupan akaun geran oleh Pejabat Bendahari.</li>
-                                    <li><strong>Perlanjutan Tempoh (79 kes / 24%)</strong>: Memerlukan justifikasi teknikal pencapaian objektif geran sebelum diangkat ke Mesyuarat Jawatankuasa Penyelidikan Universiti (JPU).</li>
-                                    <li><strong>Semakan Progress Report (123 kes / 11%)</strong>: Menunggu pembetulan laporan kemajuan dan dokumen bukti perbelanjaan daripada ketua projek.</li>
+                                    <li><strong>Semakan End Report (49 kes / 38%)</strong>: Pengesahan penerbitan berwasit (Scopus/WoS), paten, serta audit kewangan penutupan akaun bersama Pejabat Bendahari.</li>
+                                    <li><strong>Perlanjutan Tempoh (79 kes / 24%)</strong>: Justifikasi teknikal pencapaian sebelum kelulusan Jawatankuasa Penyelidikan Universiti (JPU).</li>
+                                    <li><strong>Semakan Progress Report (123 kes / 11%)</strong>: Pembetulan laporan kemajuan dan dokumen perbelanjaan daripada ketua projek.</li>
                                 </ul>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-blue-50/80 border border-blue-200 p-4 rounded-2xl flex items-start space-x-3">
-                        <div class="p-2 bg-blue-100 text-blue-700 rounded-xl mt-0.5">
-                            <i data-lucide="check-check" class="w-4 h-4"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-bold text-blue-950 uppercase">Kategori Berprestasi Tinggi (&ge; 90% Siap dlm 7 Hari)</h4>
-                            <p class="text-xs text-blue-900 mt-1 leading-relaxed">
-                                <strong>Aktiviti Luar Negara (100%)</strong>, <strong>Aktiviti Dalam Negara (99.5%)</strong>, <strong>Tuntutan SRA (98%)</strong>, <strong>Pengaktifan Geran (98%)</strong> dan <strong>Pelantikan RA/RO (93%)</strong> mempamerkan kelajuan pemprosesan yang cemerlang.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="bg-amber-50/80 border border-amber-200 p-4 rounded-2xl flex items-start space-x-3">
-                        <div class="p-2 bg-amber-100 text-amber-700 rounded-xl mt-0.5">
-                            <i data-lucide="alert-triangle" class="w-4 h-4"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-bold text-amber-950 uppercase">Kategori Memerlukan Pemantauan Tempoh (>15 Hari)</h4>
-                            <p class="text-xs text-amber-900 mt-1 leading-relaxed">
-                                <strong>Semakan End Report (38% >15 Hari)</strong> dan <strong>Perlanjutan Tempoh (24% >15 Hari)</strong> mengambil masa lebih panjang ekoran verifikasi output berimpak tinggi dan audit baki geran penyelidikan.
-                            </p>
-                        </div>
-                    </div>
-                </div>
             </div>
 
+            <!-- TAB 2: PERBANDINGAN SIRI -->
             <div id="tabContent-perbandingan" class="hidden space-y-6">
                 <!-- Graf Bar Perbandingan Bil 11 vs Bil 12 -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                    <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center justify-between mb-2">
                         <div>
                             <h3 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
                                 <span class="w-2.5 h-2.5 rounded-full bg-utm-maroon"></span>
                                 <span>Perbandingan Siri Mesyuarat PMMD: Bil. 11/2026 vs Bil. 12/2026</span>
                             </h3>
-                            <p class="text-xs text-slate-400">Peningkatan kuantiti permohonan terkini mengikut format Helaian 2</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Jumlah kuantiti permohonan dipaparkan di atas setiap bar</p>
                         </div>
+                        <button onclick="toggleChartTable('tableWrapper-comparisonChart')" class="text-2xs font-bold text-slate-600 hover:text-utm-maroon bg-slate-100 hover:bg-rose-50 px-2.5 py-1 rounded-lg border border-slate-200 transition flex items-center space-x-1">
+                            <i data-lucide="table" class="w-3 h-3"></i>
+                            <span>Papar/Tutup Jadual Data</span>
+                        </button>
                     </div>
-                    <div class="h-72 sm:h-80">
+
+                    <div class="h-72 sm:h-80 my-2">
                         <canvas id="comparisonBarChart"></canvas>
+                    </div>
+
+                    <!-- Jadual Data Mikro Graf 3 -->
+                    <div id="tableWrapper-comparisonChart" class="mt-4 pt-3 border-t border-slate-100 overflow-x-auto">
+                        <div class="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-between">
+                            <span>Data Numerik Bagi Graf Perbandingan Siri</span>
+                            <span class="text-emerald-700 font-semibold">+148 Kes Keseluruhan</span>
+                        </div>
+                        <table class="w-full text-2xs text-left">
+                            <thead class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                                <tr>
+                                    <th class="py-1.5 px-2">Kategori Proses</th>
+                                    <th class="py-1.5 px-2 text-right">Bil. 11 (Permohonan)</th>
+                                    <th class="py-1.5 px-2 text-right text-utm-maroon">Bil. 12 (Permohonan)</th>
+                                    <th class="py-1.5 px-2 text-right text-emerald-700">Pertambahan (+)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-chart-comparison" class="divide-y divide-slate-100"></tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -568,9 +563,7 @@
                                     <th class="py-2 px-3 text-right bg-emerald-50/30 text-emerald-800">Kelulusan</th>
                                 </tr>
                             </thead>
-                            <tbody id="comparisonTableBody" class="divide-y divide-slate-100">
-                                <!-- Populated via JS -->
-                            </tbody>
+                            <tbody id="comparisonTableBody" class="divide-y divide-slate-100"></tbody>
                             <tfoot class="bg-slate-100/90 font-bold border-t border-slate-300 text-slate-900">
                                 <tr>
                                     <td class="py-3 px-4 border-r border-slate-200">JUMLAH KESELURUHAN</td>
@@ -587,35 +580,44 @@
                 </div>
             </div>
 
+            <!-- TAB 3: STATUS LANTIKAN GRA -->
             <div id="tabContent-gra" class="hidden space-y-6">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    <!-- Donut Chart GRA (Slaid 4) -->
+                    <!-- Carta Donut GRA (Slaid 4) -->
                     <div class="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
                         <div>
-                            <h3 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
-                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
-                                <span>% Status Lantikan GRA (Pivot Chart Slaid 4)</span>
-                            </h3>
-                            <p class="text-xs text-slate-400 mb-4">Pecahan 705 rekod lantikan Graduate Research Assistant</p>
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                                    <span>% Status Lantikan GRA (Slaid 4)</span>
+                                </h3>
+                                <span class="text-2xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">Kolum E</span>
+                            </div>
+                            <p class="text-xs text-slate-400 mb-2">Peratusan (%) dicatat terus pada setiap sektor carta donat</p>
                             
-                            <div class="relative h-60 flex items-center justify-center">
+                            <div class="relative h-60 flex items-center justify-center my-2">
                                 <canvas id="graStatusChart"></canvas>
                                 <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                    <span class="text-3xl font-extrabold text-slate-900">85%</span>
+                                    <span class="text-3xl font-extrabold text-slate-900" id="graCenterPct">85%</span>
                                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Approved</span>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Senarai Pecahan Data Carta Donut -->
+                        <div class="mt-4 pt-3 border-t border-slate-100 space-y-1.5" id="graDonutLegendList">
+                            <!-- Diisi secara dinamik dengan status, peratus dan bilangan kes -->
+                        </div>
                     </div>
 
-                    <!-- Jadual Slaid 4 & Slaid 5 Format Templat Excel -->
+                    <!-- Jadual Status Lantikan GRA -->
                     <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden flex flex-col">
                         <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
                             <div>
                                 <h3 class="text-sm font-bold text-slate-900">Jadual Status Lantikan GRA</h3>
-                                <p class="text-xs text-slate-400">Pecahan status Bil. 11/2026 vs Bil. 12/2026</p>
+                                <p class="text-xs text-slate-400">Pecahan bilangan kes dan taburan visual status daripada Kolum E Google Sheets</p>
                             </div>
-                            <span class="text-xs font-bold px-2.5 py-1 bg-slate-100 rounded-lg text-slate-600 font-mono">Jumlah: 705</span>
+                            <span class="text-xs font-bold px-2.5 py-1 bg-slate-100 rounded-lg text-slate-700 font-mono" id="graTotalBadge">Jumlah: 705</span>
                         </div>
 
                         <div class="overflow-x-auto flex-1">
@@ -623,22 +625,18 @@
                                 <thead class="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold uppercase text-[11px]">
                                     <tr>
                                         <th class="py-3 px-4">Status</th>
-                                        <th class="py-3 px-3 text-right">Bil. 11</th>
-                                        <th class="py-3 px-3 text-right bg-amber-50/70">Bil. 12</th>
-                                        <th class="py-3 px-3 text-center">% Bil. 12</th>
-                                        <th class="py-3 px-3 text-right">Peningkatan</th>
+                                        <th class="py-3 px-3 text-right">Jumlah Permohonan</th>
+                                        <th class="py-3 px-3 text-center">% Peratusan</th>
+                                        <th class="py-3 px-4 text-center">Taburan Visual</th>
                                     </tr>
                                 </thead>
-                                <tbody id="graTableBody" class="divide-y divide-slate-100">
-                                    <!-- Populated via JS -->
-                                </tbody>
+                                <tbody id="graTableBody" class="divide-y divide-slate-100"></tbody>
                                 <tfoot class="bg-slate-100 font-bold text-slate-900">
                                     <tr>
-                                        <td class="py-2.5 px-4">TOTAL</td>
-                                        <td class="py-2.5 px-3 text-right font-mono">648</td>
-                                        <td class="py-2.5 px-3 text-right font-mono text-utm-maroon bg-amber-100/50">705</td>
+                                        <td class="py-2.5 px-4">JUMLAH KESELURUHAN</td>
+                                        <td class="py-2.5 px-3 text-right font-mono text-utm-maroon" id="graFootTotalCount">705</td>
                                         <td class="py-2.5 px-3 text-center font-mono">100%</td>
-                                        <td class="py-2.5 px-3 text-right font-mono text-emerald-700">+57</td>
+                                        <td class="py-2.5 px-4 text-center text-slate-400 font-normal italic">Keseluruhan rekod disegerakkan</td>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -647,6 +645,7 @@
                 </div>
             </div>
 
+            <!-- TAB 4: SEMAKAN PERMOHONAN -->
             <div id="tabContent-semakan" class="hidden space-y-6">
                 <!-- Kad Carian Semakan -->
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
@@ -721,7 +720,7 @@
                                 <div class="step-icon w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs bg-slate-200 text-slate-700">4</div>
                                 <div>
                                     <div class="text-xs font-bold text-slate-900">Keputusan Akhir</div>
-                                    <div class="text-[11px] text-slate-500 mt-0.5">Kelulusan & Notifikasi</div>
+                                    <div class="text-[11px] text-slate-500 mt-0.5">Kelulusan &amp; Notifikasi</div>
                                 </div>
                             </div>
                         </div>
@@ -729,11 +728,9 @@
 
                     <!-- Log Jejak Tindakan (Audit Log) -->
                     <div>
-                        <h5 class="text-xs font-bold text-slate-700 uppercase mb-3 tracking-wider">Log Jejak Tindakan & Nota Pegawai</h5>
+                        <h5 class="text-xs font-bold text-slate-700 uppercase mb-3 tracking-wider">Log Jejak Tindakan &amp; Nota Pegawai</h5>
                         <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                            <ul id="trackAuditLogs" class="space-y-3 text-xs text-slate-600">
-                                <!-- Populated via JS -->
-                            </ul>
+                            <ul id="trackAuditLogs" class="space-y-3 text-xs text-slate-600"></ul>
                         </div>
                     </div>
                 </div>
@@ -758,14 +755,11 @@
                                     <th class="py-3 px-3 text-center">Tindakan</th>
                                 </tr>
                             </thead>
-                            <tbody id="sampleRecordsTable" class="divide-y divide-slate-100">
-                                <!-- Populated via JS -->
-                            </tbody>
+                            <tbody id="sampleRecordsTable" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
-
         </main>
     </div>
 
@@ -782,13 +776,13 @@
         </div>
     </footer>
 
-    <!-- MODAL MAKLUMAT LENGKAP KES PERMOHONAN (HELAIAN 1) -->
+    <!-- MODAL MAKLUMAT LENGKAP KES PERMOHONAN -->
     <div id="processCasesModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
         <div class="bg-white rounded-2xl max-w-5xl w-full max-h-[92vh] border border-slate-200 shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <!-- Modal Header -->
             <div class="p-4 sm:p-5 border-b border-slate-200 bg-slate-50/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-start space-x-3">
-                    <div class="w-10 h-10 rounded-xl bg-utm-maroon text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-xs">
+                    <div class="w-10 h-10 rounded-xl bg-utm-maroon text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
                         <i data-lucide="layers" class="w-5 h-5"></i>
                     </div>
                     <div>
@@ -813,7 +807,6 @@
 
             <!-- Modal Sub-bar: Penapis Julat Tempoh & Carian Mikro -->
             <div class="p-3 sm:px-5 border-b border-slate-100 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <!-- Tab Julat Tempoh -->
                 <div class="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl text-xs font-medium overflow-x-auto">
                     <button onclick="filterModalCasesByPeriod('all')" id="btnFilterCaseAll" class="px-3 py-1.5 rounded-lg bg-white font-bold text-utm-maroon shadow-xs transition whitespace-nowrap">
                         Semua Kes (<span id="modalCountAll">0</span>)
@@ -825,11 +818,10 @@
                         7-14 Hari [Sederhana] (<span id="modalCount8_14">0</span>)
                     </button>
                     <button onclick="filterModalCasesByPeriod('gt15')" id="btnFilterCaseGt15" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-rose-700 hover:bg-white/60 transition whitespace-nowrap">
-                        >15 Hari [Lanjut] (<span id="modalCountGt15">0</span>)
+                        &gt;15 Hari [Lanjut] (<span id="modalCountGt15">0</span>)
                     </button>
                 </div>
 
-                <!-- Kotak Carian Dalam Modal -->
                 <div class="relative w-full sm:w-72">
                     <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5"></i>
                     <input type="text" id="modalCaseSearchInput" oninput="searchModalCases(this.value)" placeholder="Cari No. Rujukan, Pemohon, Vot..." class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-utm-maroon">
@@ -842,23 +834,21 @@
                     <table class="w-full text-xs text-left">
                         <thead class="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold uppercase text-[10px] tracking-wider">
                             <tr>
-                                <th class="py-2.5 px-3">No. Rujukan & Kod Vot</th>
+                                <th class="py-2.5 px-3">No. Rujukan &amp; Kod Vot</th>
                                 <th class="py-2.5 px-3">Ketua Penyelidik / Pemohon</th>
                                 <th class="py-2.5 px-3">Fakulti / Pusat</th>
                                 <th class="py-2.5 px-3 text-center">Tarikh Mohon</th>
                                 <th class="py-2.5 px-3 text-center">Tempoh Proses</th>
-                                <th class="py-2.5 px-3">Peringkat & Nota Audit Pegawai</th>
+                                <th class="py-2.5 px-3">Peringkat &amp; Nota Audit Pegawai</th>
                                 <th class="py-2.5 px-3 text-center">Status</th>
                                 <th class="py-2.5 px-3 text-center">Tindakan</th>
                             </tr>
                         </thead>
-                        <tbody id="modalCasesTableBody" class="divide-y divide-slate-100">
-                            <!-- Populated dynamically via JS -->
-                        </tbody>
+                        <tbody id="modalCasesTableBody" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
 
-                <!-- Kad Maklumat Log Tindakan Kes Terpilih (Expandable Card) -->
+                <!-- Kad Maklumat Log Tindakan Kes Terpilih -->
                 <div id="selectedCaseAuditCard" class="hidden p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5 transition">
                     <div class="flex items-center justify-between border-b border-slate-200 pb-2">
                         <div class="flex items-center space-x-2">
@@ -869,9 +859,7 @@
                             <i data-lucide="x" class="w-4 h-4"></i>
                         </button>
                     </div>
-                    <ul id="selectedCaseTimeline" class="text-[11px] text-slate-600 space-y-1.5">
-                        <!-- Populated via JS -->
-                    </ul>
+                    <ul id="selectedCaseTimeline" class="text-[11px] text-slate-600 space-y-1.5"></ul>
                 </div>
             </div>
 
@@ -882,6 +870,63 @@
                 </div>
                 <button onclick="closeProcessCasesModal()" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold rounded-xl text-xs transition">
                     Tutup Paparan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Konfigurasi Google Sheet (Setting) -->
+    <div id="configModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 flex flex-col">
+            <!-- Modal Header -->
+            <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div>
+                    <h3 class="text-sm sm:text-base font-bold text-slate-900">Konfigurasi Google Sheet</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Tetapkan pautan CSV bagi sheet data yang diterbitkan ke web.</p>
+                </div>
+                <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body (Input Pautan) -->
+            <div class="p-5 space-y-4 text-xs">
+                <!-- Pautan 1: Kecekapan Proses -->
+                <div class="space-y-1.5">
+                    <label for="cfgUrlKecekapan" class="font-bold text-slate-700 uppercase text-[11px] block">
+                        Kecekapan Proses &amp; Semakan CSV URL
+                    </label>
+                    <textarea id="cfgUrlKecekapan" rows="2" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?gid=2076582354&single=true&output=csv" class="w-full p-2.5 text-xs font-mono bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-utm-maroon resize-none"></textarea>
+                </div>
+
+                <!-- Pautan 2: Perbandingan Siri -->
+                <div class="space-y-1.5">
+                    <label for="cfgUrlPerbandingan" class="font-bold text-slate-700 uppercase text-[11px] block">
+                        Perbandingan Siri CSV URL
+                    </label>
+                    <textarea id="cfgUrlPerbandingan" rows="2" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?gid=921703161&single=true&output=csv" class="w-full p-2.5 text-xs font-mono bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-utm-maroon resize-none"></textarea>
+                </div>
+
+                <!-- Pautan 3: Status Lantikan GRA -->
+                <div class="space-y-1.5">
+                    <label for="cfgUrlGra" class="font-bold text-slate-700 uppercase text-[11px] block">
+                        Status Lantikan GRA CSV URL (Pilihan)
+                    </label>
+                    <textarea id="cfgUrlGra" rows="2" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?gid=2136895207&single=true&output=csv" class="w-full p-2.5 text-xs font-mono bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-utm-maroon resize-none"></textarea>
+                </div>
+
+                <div class="p-3 bg-blue-50/70 rounded-xl border border-blue-200 text-blue-900 text-[11px] leading-relaxed">
+                    <span class="font-bold">Panduan:</span> Pastikan Google Sheets telah diterbitkan ke web melalui menu <em>File &rarr; Share &rarr; Publish to web &rarr; CSV</em> sebelum menampal pautan di sini.
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end space-x-2">
+                <button onclick="closeConfigModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition">
+                    Batal
+                </button>
+                <button onclick="saveGSheetConfig()" class="px-4 py-2 bg-slate-900 hover:bg-black text-white font-semibold rounded-xl text-xs transition shadow-xs">
+                    Simpan &amp; Tutup
                 </button>
             </div>
         </div>
@@ -901,9 +946,7 @@
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
-            <div class="p-6 space-y-4 text-xs" id="detailModalBody">
-                <!-- Populated dynamically -->
-            </div>
+            <div class="p-6 space-y-4 text-xs" id="detailModalBody"></div>
             <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
                 <button onclick="closeDetailModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition">Tutup</button>
             </div>
@@ -919,8 +962,81 @@
     </div>
 
     <script>
-        // CONFIG / DATA SOURCE: pautan CSV diterbitkan daripada Google Sheets.
-        const GOOGLE_SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ3uEWGgTUJC0ZUfRcyPu1Qdx_ioxEixM2PjjtaBpTR7HWf26ZqXYi-_Lg8qP5v34Z-KgtE-xcNrS8q/pub?gid=2076582354&single=true&output=csv";
+        // Mendaftar plugin ChartDataLabels untuk Chart.js
+        if (typeof ChartDataLabels !== 'undefined') {
+            Chart.register(ChartDataLabels);
+        }
+
+        // Pautan Asal Google Sheets CSV Rasmi
+        const DEFAULT_URL_KECEKAPAN = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ3uEWGgTUJC0ZUfRcyPu1Qdx_ioxEixM2PjjtaBpTR7HWf26ZqXYi-_Lg8qP5v34Z-KgtE-xcNrS8q/pub?gid=2076582354&single=true&output=csv";
+        const DEFAULT_URL_PERBANDINGAN = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ3uEWGgTUJC0ZUfRcyPu1Qdx_ioxEixM2PjjtaBpTR7HWf26ZqXYi-_Lg8qP5v34Z-KgtE-xcNrS8q/pub?gid=921703161&single=true&output=csv";
+        const DEFAULT_URL_GRA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ3uEWGgTUJC0ZUfRcyPu1Qdx_ioxEixM2PjjtaBpTR7HWf26ZqXYi-_Lg8qP5v34Z-KgtE-xcNrS8q/pub?gid=2136895207&single=true&output=csv";
+
+        // Fungsi mendapatkan URL aktif
+        function getActiveGSheetUrls() {
+            try {
+                return {
+                    kecekapan: localStorage.getItem('promans_csv_kecekapan') || DEFAULT_URL_KECEKAPAN,
+                    perbandingan: localStorage.getItem('promans_csv_perbandingan') || DEFAULT_URL_PERBANDINGAN,
+                    gra: localStorage.getItem('promans_csv_gra') || DEFAULT_URL_GRA
+                };
+            } catch (e) {
+                return {
+                    kecekapan: DEFAULT_URL_KECEKAPAN,
+                    perbandingan: DEFAULT_URL_PERBANDINGAN,
+                    gra: DEFAULT_URL_GRA
+                };
+            }
+        }
+
+        function openConfigModal() {
+            const urls = getActiveGSheetUrls();
+            const elKec = document.getElementById('cfgUrlKecekapan');
+            const elPer = document.getElementById('cfgUrlPerbandingan');
+            const elGra = document.getElementById('cfgUrlGra');
+
+            if (elKec) elKec.value = urls.kecekapan;
+            if (elPer) elPer.value = urls.perbandingan;
+            if (elGra) elGra.value = urls.gra;
+
+            const modal = document.getElementById('configModal');
+            if (modal) modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeConfigModal() {
+            const modal = document.getElementById('configModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function saveGSheetConfig() {
+            const elKec = document.getElementById('cfgUrlKecekapan');
+            const elPer = document.getElementById('cfgUrlPerbandingan');
+            const elGra = document.getElementById('cfgUrlGra');
+
+            const valKec = elKec ? elKec.value.trim() : '';
+            const valPer = elPer ? elPer.value.trim() : '';
+            const valGra = elGra ? elGra.value.trim() : '';
+
+            try {
+                localStorage.setItem('promans_csv_kecekapan', valKec || DEFAULT_URL_KECEKAPAN);
+                localStorage.setItem('promans_csv_perbandingan', valPer || DEFAULT_URL_PERBANDINGAN);
+                localStorage.setItem('promans_csv_gra', valGra || DEFAULT_URL_GRA);
+                showToast("Pautan konfigurasi Google Sheet berjaya disimpan!");
+            } catch (e) {
+                console.warn('Storage unavailable', e);
+            }
+
+            closeConfigModal();
+            loadGoogleSheetsCSV(true);
+        }
+
+        function toggleChartTable(wrapperId) {
+            const wrapper = document.getElementById(wrapperId);
+            if (wrapper) {
+                wrapper.classList.toggle('hidden');
+            }
+        }
 
         // Data Asas Helaian 1: Kecekapan Proses (Jan - 26 Ogos)
         const rawJanOgosTemplateData = [
@@ -950,7 +1066,7 @@
             { proses: "Perlanjutan tempoh", p11: 320, k11: 313, p12: 328, k12: 321, dP: 8, dK: 8 }
         ];
 
-        // Data Asas Helaian 3: Status Lantikan GRA (Slaid 4 & Slaid 5)
+        // Data Asas Helaian 3: Status Lantikan GRA
         const rawGraTemplateData = [
             { status: "Approved", b11: 566, b12: 600, pct: 85, diff: 34, color: '#16a34a' },
             { status: "Draft", b11: 19, b12: 43, pct: 6, diff: 24, color: '#ea580c' },
@@ -1139,15 +1255,15 @@
                     dateReceived: `${Math.max(1, 26 - dayNum)}/0${Math.min(8, Math.max(5, 8 - Math.floor(dayNum / 10)))}/2026`,
                     daysTaken: dayNum,
                     periodCategory: "gt15",
-                    currentStage: isApproved ? "Selesai (Diluluskan)" : "Menunggu Pengesahan Semula",
-                    status: isApproved ? "Approved" : "Pending Verification",
+                    currentStage: isApproved ? "Selesai (Diluluskan)" : "Menunggu Tindakan Pemohon",
+                    status: isApproved ? "Approved" : "Draft",
                     auditNote: getDelayedAuditNote(processName, dayNum),
                     logs: [
                         `Hari 1: Permohonan diterima dan didaftarkan ke dalam sistem RADIS/RMC.`,
                         `Hari 4: Semakan syarat umum asas oleh kerani bertugas.`,
                         `Hari 9: Ulasan lanjut teknikal peruntukan/dokumen bersama penyelidik.`,
                         `Hari ${Math.floor(dayNum * 0.75)}: Siasatan audit kewangan baki vot / verifikasi output penerbitan.`,
-                        `Hari ${dayNum}: ${isApproved ? 'Kelulusan muktamad diberikan dan direkodkan ke sistem PMMD.' : 'Menunggu tindakan susulan pemohon bagi pindaan laporan.'}`
+                        `Hari ${dayNum}: ${isApproved ? 'Kelulusan muktamad diberikan dan direkodkan ke sistem PMMD.' : 'Menunggu tindakan susulan pemohon bagi pindaan draf laporan.'}`
                     ]
                 });
                 caseIndex++;
@@ -1171,8 +1287,8 @@
                     dateReceived: `${Math.max(1, 26 - dayNum)}/08/2026`,
                     daysTaken: dayNum,
                     periodCategory: "8-14",
-                    currentStage: isApproved ? "Selesai (Diluluskan)" : "Pindaan oleh Pegawai",
-                    status: isApproved ? "Approved" : "Amendment by officer",
+                    currentStage: isApproved ? "Selesai (Diluluskan)" : "Penyediaan Draf Semula",
+                    status: isApproved ? "Approved" : "Draft",
                     auditNote: getMediumAuditNote(processName, dayNum),
                     logs: [
                         `Hari 1: Penyerahan borang dan lampiran sokongan disahkan.`,
@@ -1191,7 +1307,6 @@
                 const res = researchersList[(caseIndex * 7) % researchersList.length];
                 const fac = facultiesList[(caseIndex * 4) % facultiesList.length];
                 const vot = `Q.J130000.24M1.${10 + (caseIndex % 40)}H${30 + (caseIndex % 60)}`;
-                const isApproved = true;
 
                 cases.push({
                     ref: ref,
@@ -1341,7 +1456,7 @@
                     dayBadge = `<span class="px-2 py-0.5 rounded font-bold text-[10px] bg-blue-100 text-blue-800 border border-blue-200">${c.daysTaken} Hari (1-7 Hari)</span>`;
                 }
 
-                const statusColor = c.status === 'Approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-amber-100 text-amber-800 border-amber-300';
+                const statusColor = c.status === 'Approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-orange-100 text-orange-800 border-orange-300';
 
                 tr.innerHTML = `
                     <td class="py-2.5 px-3">
@@ -1387,7 +1502,7 @@
                 const li = document.createElement('li');
                 li.className = "flex items-start space-x-2";
                 li.innerHTML = `
-                    <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-utm-maroon mt-0.5 flex-shrink-0"></i>
+                    <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-utm-maroon mt-0.5 shrink-0"></i>
                     <span>${log}</span>
                 `;
                 timeline.appendChild(li);
@@ -1475,16 +1590,12 @@
             document.getElementById('kpiAvgKelulusan').innerText = avgRate + '%';
             document.getElementById('kpiAvgSlaPantas').innerText = weightedSla + '%';
 
-            const bulanLabel = bulanVal === 'all' ? 'Jan - 26 Ogos' : monthNames[bulanVal];
-            const prosesLabel = prosesVal === 'all' ? 'Semua Kategori' : prosesVal;
-            document.getElementById('activeFilterBadgeSummary').innerText = `${prosesLabel} | ${bulanLabel}`;
-
             populateTables();
             updateCharts();
         }
 
         function initCharts() {
-            // 1. Carta Bar Bertumpuk (Tempoh Hari)
+            // 1. Carta Bar Bertumpuk: Tempoh Hari dengan On-Chart Data Labels
             const ctxTime = document.getElementById('timeBreakdownChart').getContext('2d');
             timeChart = new Chart(ctxTime, {
                 type: 'bar',
@@ -1499,15 +1610,31 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: { padding: { top: 14 } },
                     scales: {
                         x: { stacked: true, ticks: { font: { size: 9 }, maxRotation: 40, minRotation: 20 }, grid: { display: false } },
                         y: { stacked: true, max: 100, ticks: { callback: v => v + '%' }, grid: { color: '#f1f5f9' } }
                     },
-                    plugins: { legend: { display: false } }
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            color: '#ffffff',
+                            font: { weight: 'bold', size: 9 },
+                            formatter: (value) => value >= 8 ? value + '%' : '',
+                            anchor: 'center',
+                            align: 'center',
+                            clamp: true
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `${ctx.dataset.label}: ${ctx.raw}%`
+                            }
+                        }
+                    }
                 }
             });
 
-            // 2. Carta Bar Mendatar (% Kelulusan)
+            // 2. Carta Bar Mendatar: % Kelulusan dengan On-Chart Data Labels
             const ctxApp = document.getElementById('approvalRateChart').getContext('2d');
             const sorted = [...filteredJanOgosData].sort((a, b) => a.pctKelulusan - b.pctKelulusan);
             approvalChart = new Chart(ctxApp, {
@@ -1525,15 +1652,31 @@
                     indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: { padding: { right: 28 } },
                     scales: {
-                        x: { min: 75, max: 102, ticks: { callback: v => v + '%' }, grid: { color: '#f8fafc' } },
+                        x: { min: 0, max: 110, ticks: { callback: v => v + '%' }, grid: { color: '#f8fafc' } },
                         y: { ticks: { font: { size: 9 } }, grid: { display: false } }
                     },
-                    plugins: { legend: { display: false } }
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'right',
+                            offset: 4,
+                            color: '#1e293b',
+                            font: { weight: 'bold', size: 9.5 },
+                            formatter: (value) => value + '%'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `Kadar Kelulusan: ${ctx.raw}%`
+                            }
+                        }
+                    }
                 }
             });
 
-            // 3. Carta Perbandingan Bil 11 vs Bil 12
+            // 3. Carta Perbandingan Bil 11 vs Bil 12 dengan On-Chart Data Labels
             const ctxComp = document.getElementById('comparisonBarChart').getContext('2d');
             comparisonChart = new Chart(ctxComp, {
                 type: 'bar',
@@ -1548,8 +1691,17 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: { padding: { top: 22 } },
                     plugins: {
-                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            offset: 1,
+                            color: '#334155',
+                            font: { weight: 'bold', size: 8.5 },
+                            formatter: (value) => value > 0 ? (value >= 1000 ? value.toLocaleString() : value) : ''
+                        }
                     },
                     scales: {
                         x: { ticks: { font: { size: 9 }, maxRotation: 40, minRotation: 20 }, grid: { display: false } },
@@ -1558,7 +1710,7 @@
                 }
             });
 
-            // 4. Carta Donut Status Lantikan GRA
+            // 4. Carta Donut Status Lantikan GRA dengan On-Chart Data Labels
             const ctxGra = document.getElementById('graStatusChart').getContext('2d');
             graChart = new Chart(ctxGra, {
                 type: 'doughnut',
@@ -1574,12 +1726,21 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '72%',
+                    cutout: '70%',
                     plugins: {
                         legend: { display: false },
+                        datalabels: {
+                            color: '#ffffff',
+                            font: { weight: 'bold', size: 10 },
+                            formatter: (value, ctx) => {
+                                const total = ctx.dataset.data.reduce((a, b) => a + b, 0) || 1;
+                                const pct = Math.round((value / total) * 100);
+                                return pct >= 5 ? pct + '%' : '';
+                            }
+                        },
                         tooltip: {
                             callbacks: {
-                                label: ctx => `${ctx.label}: ${ctx.raw} (${currentGraData[ctx.dataIndex].pct}%)`
+                                label: ctx => `${ctx.label}: ${ctx.raw} kes (${currentGraData[ctx.dataIndex].pct}%)`
                             }
                         }
                     }
@@ -1670,27 +1831,66 @@
                 tBodyComp.appendChild(tr);
             });
 
-            // 3. Jadual Helaian 3: Status GRA
+            // Populat Jadual Mikro Graf 3 (Perbandingan Siri)
+            const tBodyChartComp = document.getElementById('tbody-chart-comparison');
+            if (tBodyChartComp) {
+                tBodyChartComp.innerHTML = filteredComparisonData.map(d => `
+                    <tr class="hover:bg-slate-50">
+                        <td class="py-1 px-2 font-medium text-slate-800">${d.proses}</td>
+                        <td class="py-1 px-2 text-right font-mono text-slate-600">${d.p11.toLocaleString()}</td>
+                        <td class="py-1 px-2 text-right font-mono font-bold text-utm-maroon">${d.p12.toLocaleString()}</td>
+                        <td class="py-1 px-2 text-right font-mono font-bold ${d.dP > 0 ? 'text-emerald-700' : 'text-slate-400'}">${d.dP > 0 ? '+' + d.dP : d.dP}</td>
+                    </tr>
+                `).join('');
+            }
+
+            // 3. Jadual Helaian 3: Status GRA (Kolum E)
             const tBodyGra = document.getElementById('graTableBody');
             tBodyGra.innerHTML = '';
+            const sumGraCases = currentGraData.reduce((acc, cur) => acc + (cur.b12 || 0), 0);
+
             currentGraData.forEach(r => {
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50 transition";
-                const diffCls = r.diff > 0 ? 'text-emerald-700 font-bold' : (r.diff < 0 ? 'text-rose-600 font-bold' : 'text-slate-400');
-                const diffTxt = r.diff > 0 ? '+' + r.diff : r.diff;
+                const pctVal = r.pct || (sumGraCases > 0 ? Math.round((r.b12 / sumGraCases) * 100) : 0);
 
                 tr.innerHTML = `
                     <td class="py-2 px-4 font-medium text-slate-800 flex items-center space-x-2">
-                        <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${r.color}"></span>
+                        <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${r.color || '#7A1315'}"></span>
                         <span>${r.status}</span>
                     </td>
-                    <td class="py-2 px-3 text-right font-mono">${r.b11}</td>
-                    <td class="py-2 px-3 text-right font-mono font-bold bg-amber-50/40">${r.b12}</td>
-                    <td class="py-2 px-3 text-center font-bold">${r.pct}%</td>
-                    <td class="py-2 px-3 text-right font-mono ${diffCls}">${diffTxt}</td>
+                    <td class="py-2 px-3 text-right font-mono font-bold text-slate-900">${r.b12.toLocaleString()}</td>
+                    <td class="py-2 px-3 text-center font-bold text-slate-800">${pctVal}%</td>
+                    <td class="py-2 px-4">
+                        <div class="w-full bg-slate-100 rounded-full h-2 max-w-[140px] mx-auto overflow-hidden">
+                            <div class="h-2 rounded-full" style="width: ${Math.min(100, Math.max(2, pctVal))}%; background-color: ${r.color || '#7A1315'}"></div>
+                        </div>
+                    </td>
                 `;
                 tBodyGra.appendChild(tr);
             });
+
+            // Populat Senarai Pecahan Data Donut GRA
+            const graDonutLegend = document.getElementById('graDonutLegendList');
+            if (graDonutLegend) {
+                graDonutLegend.innerHTML = currentGraData.slice(0, 6).map(r => `
+                    <div class="flex items-center justify-between text-2xs p-1.5 rounded-lg hover:bg-slate-50 transition">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${r.color || '#7A1315'}"></span>
+                            <span class="font-medium text-slate-700">${r.status}</span>
+                        </div>
+                        <div class="flex items-center space-x-2 font-mono">
+                            <span class="font-bold text-slate-900">${r.b12} kes</span>
+                            <span class="text-slate-500 font-semibold">(${r.pct}%)</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const graTotalBadge = document.getElementById('graTotalBadge');
+            const graFootTotalCount = document.getElementById('graFootTotalCount');
+            if (graTotalBadge) graTotalBadge.innerText = `Jumlah: ${sumGraCases.toLocaleString()}`;
+            if (graFootTotalCount) graFootTotalCount.innerText = sumGraCases.toLocaleString();
 
             // 4. Jadual Sampel Semakan
             const tBodySample = document.getElementById('sampleRecordsTable');
@@ -1700,7 +1900,7 @@
                 tr.className = "hover:bg-slate-50 transition cursor-pointer";
                 tr.onclick = () => showDetailModal(app.ref);
 
-                let badgeColor = app.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800';
+                let badgeColor = app.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800';
 
                 tr.innerHTML = `
                     <td class="py-3 px-4 font-mono font-bold text-utm-maroon">${app.ref}</td>
@@ -1884,21 +2084,9 @@
                     }
                 }
             });
-
-            // Menyembunyikan sepanduk status data pada tab status lantikan GRA
-            const fileBanner = document.getElementById('fileStatusBanner');
-            if (fileBanner) {
-                if (tabId === 'gra') {
-                    fileBanner.classList.add('hidden');
-                } else {
-                    fileBanner.classList.remove('hidden');
-                }
-            }
-
             lucide.createIcons();
         }
 
-        // Membaca CSV Google Sheets secara terus. Pengepala lajur dipadankan secara fleksibel.
         function parseCSVRows(text) {
             const rows = [];
             let row = [], field = '', quoted = false;
@@ -1923,10 +2111,17 @@
         }
 
         function loadGoogleSheetsCSV(showMessage = false) {
-            const refreshButton = document.querySelector('button[onclick="loadGoogleSheetsCSV(true)"]');
+            const refreshButton = document.getElementById('btnSyncGoogleSheets');
             if (refreshButton) refreshButton.disabled = true;
-            fetch(GOOGLE_SHEETS_CSV_URL + (GOOGLE_SHEETS_CSV_URL.includes('?') ? '&' : '?') + '_=' + Date.now(), { cache: 'no-store' })
-                .then(response => { if (!response.ok) throw new Error('HTTP ' + response.status); return response.text(); })
+
+            const urls = getActiveGSheetUrls();
+            const mainUrl = urls.kecekapan + (urls.kecekapan.includes('?') ? '&' : '?') + '_=' + Date.now();
+
+            fetch(mainUrl, { cache: 'no-store' })
+                .then(response => {
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.text();
+                })
                 .then(csvText => {
                     const rows = parseCSVRows(csvText);
                     if (rows.length < 2) throw new Error('CSV kosong atau tidak mempunyai baris data.');
@@ -1938,12 +2133,11 @@
                     const dataRows = rows.slice(1);
                     let updatedSections = [];
 
-                    // Sokongan struktur CALCULATION: SOURCE, MONTH, RECORD_ID,
-                    // tempoh kerani/PPT/pegawai, TOTAL_PROCESSING_DAYS dan STATUS.
-                    const hasCalculationSchema =
-                        has('source') && has('record_id', 'record id') &&
+                    // Skema Pengiraan Rekod Mentah
+                    const hasCalculationSchema = has('source') && has('record_id', 'record id') &&
                         has('total_processing_days', 'total processing days', 'jumlah hari pemprosesan') &&
                         has('status');
+
                     if (hasCalculationSchema) {
                         const getFirst = (row, aliases) => {
                             for (const alias of aliases) {
@@ -1952,6 +2146,7 @@
                             }
                             return '';
                         };
+
                         const calcRows = dataRows.map(row => ({
                             source: getFirst(row, ['source']),
                             month: getFirst(row, ['month', 'bulan']),
@@ -1963,7 +2158,7 @@
                             officerName: getFirst(row, ['pegawai_name', 'pegawai name']),
                             officerDays: num(row, 'tempoh_pegawai', 'tempoh pegawai'),
                             totalDays: num(row, 'total_processing_days', 'total processing days', 'jumlah hari pemprosesan'),
-                            status: getFirst(row, ['status']) || 'Dalam proses'
+                            status: getFirst(row, ['status']) || 'Draft'
                         })).filter(row => row.source || row.ref);
 
                         if (calcRows.length) {
@@ -1982,6 +2177,7 @@
                                     else g.dgt15++;
                                 }
                             });
+
                             const mappedSummary = Array.from(grouped.values()).map(g => {
                                 const timed = g.datedCount || 1;
                                 return {
@@ -1996,37 +2192,13 @@
                             });
                             currentJanOgosData = mappedSummary;
                             updatedSections.push('Kecekapan Proses & Semakan');
-
-                            const mappedApplications = calcRows.filter(row => row.ref).map(row => {
-                                const days = row.totalDays;
-                                const band = days > 14 ? '>15 Hari' : days >= 8 ? '8-14 Hari' : days > 0 ? '1-7 Hari' : 'Tempoh belum tersedia';
-                                const duration = days > 0 ? days + ' Hari (' + band + ')' : band;
-                                const logs = [];
-                                if (row.clerkName || row.clerkDays) logs.push('Kerani: ' + (row.clerkName || 'Tidak dinyatakan') + ' · ' + (row.clerkDays || 0) + ' hari');
-                                if (row.pptName || row.pptDays) logs.push('PPT: ' + (row.pptName || 'Tidak dinyatakan') + ' · ' + (row.pptDays || 0) + ' hari');
-                                if (row.officerName || row.officerDays) logs.push('Pegawai: ' + (row.officerName || 'Tidak dinyatakan') + ' · ' + (row.officerDays || 0) + ' hari');
-                                logs.push('Jumlah tempoh pemprosesan: ' + (days || 'Belum tersedia') + ' hari.');
-                                logs.push('Status semasa: ' + row.status + (row.month ? ' · Bulan: ' + row.month : ''));
-                                return {
-                                    ref: row.ref,
-                                    type: row.source || 'Proses tidak dinyatakan',
-                                    applicant: row.source || row.ref,
-                                    date: row.month || '-',
-                                    duration,
-                                    status: row.status,
-                                    step: /approved|lulus|selesai|complete|completed/i.test(row.status) ? 4 : 2,
-                                    logs
-                                };
-                            });
-                            if (mappedApplications.length) {
-                                sampleApplications.splice(0, sampleApplications.length, ...mappedApplications);
-                                updatedSections.push('Semakan Permohonan');
-                            }
                         }
                     }
 
+                    // Skema Jadual Rumusan
                     const processCol = has('proses', 'nama proses', 'kategori proses', 'process') ? ['proses', 'nama proses', 'kategori proses', 'process'] : null;
                     const appCol = has('permohonan', 'jumlah permohonan', 'bilangan permohonan', 'applications', 'jumlah') ? ['permohonan', 'jumlah permohonan', 'bilangan permohonan', 'applications', 'jumlah'] : null;
+
                     if (processCol && appCol && (has('kelulusan', 'diluluskan', 'approved', 'jumlah kelulusan') || has('d1_7', '1-7 hari', '1 hingga 7 hari'))) {
                         const mapped = dataRows.map(row => ({
                             proses: val(row, ...processCol),
@@ -2037,138 +2209,115 @@
                             d8_14: num(row, 'd8_14', '8-14 hari', '7-14 hari', '8 hingga 14 hari', '8-14'),
                             dgt15: num(row, 'dgt15', '>15 hari', 'lebih 15 hari', 'melebihi 15 hari', '15 hari ke atas')
                         })).filter(d => d.proses);
-                        if (mapped.length) { currentJanOgosData = mapped; updatedSections.push('Kecekapan Proses'); }
+
+                        if (mapped.length) {
+                            currentJanOgosData = mapped;
+                            updatedSections.push('Kecekapan Proses');
+                        }
                     }
 
-                    const comparisonHeadersPresent = has('p11', 'permohonan bil 11', 'permohonan siri 11') && has('p12', 'permohonan bil 12', 'permohonan siri 12');
-                    if (processCol && comparisonHeadersPresent) {
-                        const mapped = dataRows.map(row => {
-                            const p11 = num(row, 'p11', 'permohonan bil 11', 'permohonan siri 11');
-                            const k11 = num(row, 'k11', 'kelulusan bil 11', 'diluluskan bil 11', 'kelulusan siri 11');
-                            const p12 = num(row, 'p12', 'permohonan bil 12', 'permohonan siri 12');
-                            const k12 = num(row, 'k12', 'kelulusan bil 12', 'diluluskan bil 12', 'kelulusan siri 12');
-                            return { proses: val(row, ...processCol), p11, k11, p12, k12, dP: p12-p11, dK: k12-k11 };
-                        }).filter(d => d.proses);
-                        if (mapped.length) { currentComparisonData = mapped; updatedSections.push('Perbandingan Siri'); }
-                    }
+                    // Muat helaian sampingan (Perbandingan & GRA)
+                    loadSecondarySheets();
 
-                    if (has('status', 'status lantikan', 'status permohonan') && has('b12', 'bil 12', 'siri 12', 'jumlah semasa')) {
-                        const mapped = dataRows.map(row => {
-                            const b11 = num(row, 'b11', 'bil 11', 'siri 11', 'jumlah bil 11');
-                            const b12 = num(row, 'b12', 'bil 12', 'siri 12', 'jumlah semasa');
-                            return { status: val(row, 'status', 'status lantikan', 'status permohonan'), b11, b12, pct: num(row, 'pct', 'peratus', 'percentage') || 0, diff: b12-b11, color: '#7A1315' };
-                        }).filter(d => d.status);
-                        if (mapped.length) { currentGraData = mapped; updatedSections.push('Status Lantikan GRA'); }
-                    }
-
-                    if (has('ref', 'no rujukan', 'nombor rujukan', 'reference') && has('applicant', 'pemohon', 'nama pemohon')) {
-                        const mapped = dataRows.map(row => {
-                            const status = val(row, 'status', 'status semakan') || 'Dalam proses';
-                            const duration = val(row, 'duration', 'tempoh', 'tempoh masa', 'tempoh hari') || '-';
-                            return { ref: val(row, 'ref', 'no rujukan', 'nombor rujukan', 'reference'), type: val(row, 'type', 'jenis permohonan', 'kategori permohonan', 'proses'), applicant: val(row, 'applicant', 'pemohon', 'nama pemohon'), date: val(row, 'date', 'tarikh dihantar', 'tarikh permohonan', 'tarikh diterima'), duration, status, step: /approved|lulus/i.test(status) ? 4 : 2, logs: [ 'Rekod dimuatkan daripada Google Sheets.', 'Status semasa: ' + status ] };
-                        }).filter(d => d.ref && d.applicant);
-                        if (mapped.length) { sampleApplications.splice(0, sampleApplications.length, ...mapped); updatedSections.push('Semakan Permohonan'); }
-                    }
-
-                    if (!updatedSections.length) {
-                        throw new Error('Pengepala CSV tidak sepadan dengan medan dashboard. Semak sama ada tab CSV mempunyai lajur proses/permohonan, perbandingan Bil. 11/12, status GRA atau butiran permohonan.');
-                    }
-                    const stamp = new Date().toLocaleString('ms-MY');
-                    const sourceText = 'Google Sheets CSV · Dikemas kini ' + stamp;
-                    const sourceLabel = document.getElementById('currentDataSourceName');
-                    const badge = document.getElementById('headerFileBadge');
-                    if (sourceLabel) sourceLabel.innerText = sourceText;
-                    if (badge) badge.innerText = 'Google Sheets CSV';
                     applyGlobalFilters();
                     populateTables();
                     updateCharts();
-                    if (showMessage) showToast('Data disegarkan. Bahagian dikemas kini: ' + updatedSections.join(', '));
+                    if (showMessage) showToast('Data berjaya disegarkan daripada Google Sheets.');
                 })
                 .catch(error => {
                     console.error('Ralat memuatkan Google Sheets CSV:', error);
                     if (showMessage) showToast('Gagal memuatkan CSV: ' + error.message, 'error');
-                    else {
-                        const sourceLabel = document.getElementById('currentDataSourceName');
-                        if (sourceLabel) sourceLabel.innerText = 'Gagal memuatkan Google Sheets CSV — data templat dikekalkan';
-                    }
                 })
-                .finally(() => { if (refreshButton) refreshButton.disabled = false; });
+                .finally(() => {
+                    if (refreshButton) refreshButton.disabled = false;
+                });
         }
 
-        function handleExcelUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                parseExcelFile(file);
-            }
-        }
+        // Pemuatan Helaian Sampingan (Perbandingan & GRA)
+        function loadSecondarySheets() {
+            const urls = getActiveGSheetUrls();
 
-        function parseExcelFile(file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    
-                    document.getElementById('currentDataSourceName').innerText = `Fail Dimuat Naik: ${file.name}`;
-                    document.getElementById('headerFileBadge').innerText = file.name;
-
-                    workbook.SheetNames.forEach(sheetName => {
-                        const sLower = sheetName.toLowerCase();
-                        const sheet = workbook.Sheets[sheetName];
-                        const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-                        if (json && json.length > 1) {
-                            if (sLower.includes('kecekapan') || sLower.includes('proses') || sLower.includes('sheet1')) {
-                                const newItems = [];
-                                for (let i = 1; i < json.length; i++) {
-                                    const row = json[i];
-                                    if (row && row[0]) {
-                                        newItems.push({
-                                            proses: String(row[0]),
-                                            permohonan: Number(row[1]) || 0,
-                                            kelulusan: Number(row[2]) || 0,
-                                            pctKelulusan: Number(row[3]) || 0,
-                                            d1_7: Number(row[4]) || 0,
-                                            d8_14: Number(row[5]) || 0,
-                                            dgt15: Number(row[6]) || 0
-                                        });
-                                    }
-                                }
-                                if (newItems.length > 0) {
-                                    currentJanOgosData = newItems;
-                                }
-                            }
-                            if (sLower.includes('banding') || sLower.includes('bil') || sLower.includes('sheet2')) {
-                                const newComp = [];
-                                for (let i = 1; i < json.length; i++) {
-                                    const row = json[i];
-                                    if (row && row[0]) {
-                                        newComp.push({
-                                            proses: String(row[0]),
-                                            p11: Number(row[1]) || 0,
-                                            k11: Number(row[2]) || 0,
-                                            p12: Number(row[3]) || 0,
-                                            k12: Number(row[4]) || 0,
-                                            dP: (Number(row[3]) || 0) - (Number(row[1]) || 0),
-                                            dK: (Number(row[4]) || 0) - (Number(row[2]) || 0)
-                                        });
-                                    }
-                                }
-                                if (newComp.length > 0) {
-                                    currentComparisonData = newComp;
-                                }
-                            }
+            // 1. Perbandingan
+            if (urls.perbandingan) {
+                fetch(urls.perbandingan + (urls.perbandingan.includes('?') ? '&' : '?') + '_=' + Date.now(), { cache: 'no-store' })
+                    .then(r => r.ok ? r.text() : null)
+                    .then(csv => {
+                        if (!csv) return;
+                        const rows = parseCSVRows(csv);
+                        if (rows.length < 2) return;
+                        const dataRows = rows.slice(1);
+                        const mapped = dataRows.map(r => {
+                            const p11 = Number(String(r[1] || '').replace(/[^0-9.-]/g, '')) || 0;
+                            const k11 = Number(String(r[2] || '').replace(/[^0-9.-]/g, '')) || 0;
+                            const p12 = Number(String(r[3] || '').replace(/[^0-9.-]/g, '')) || 0;
+                            const k12 = Number(String(r[4] || '').replace(/[^0-9.-]/g, '')) || 0;
+                            return {
+                                proses: String(r[0] || '').trim(),
+                                p11, k11, p12, k12,
+                                dP: p12 - p11,
+                                dK: k12 - k11
+                            };
+                        }).filter(d => d.proses);
+                        if (mapped.length) {
+                            currentComparisonData = mapped;
+                            filteredComparisonData = [...currentComparisonData];
+                            populateTables();
+                            updateCharts();
                         }
-                    });
+                    }).catch(e => console.warn('Helaian perbandingan dikekalkan', e));
+            }
 
-                    applyGlobalFilters();
-                    showToast(`Fail "${file.name}" berjaya dibaca dan dipaparkan!`);
-                } catch (err) {
-                    console.error(err);
-                    showToast("Ralat memproses fail Excel. Sila pastikan format templat sepadan.", "error");
-                }
-            };
-            reader.readAsArrayBuffer(file);
+            // 2. GRA: Membaca status daripada Kolum E (Indeks 4)
+            if (urls.gra) {
+                fetch(urls.gra + (urls.gra.includes('?') ? '&' : '?') + '_=' + Date.now(), { cache: 'no-store' })
+                    .then(r => r.ok ? r.text() : null)
+                    .then(csv => {
+                        if (!csv) return;
+                        const rows = parseCSVRows(csv);
+                        if (rows.length < 2) return;
+                        const dataRows = rows.slice(1);
+
+                        // Kiraan status mengikut Kolum E
+                        const counts = {};
+                        dataRows.forEach(row => {
+                            const statusCol = String(row[4] !== undefined ? row[4] : row[0] || '').trim();
+                            if (statusCol) {
+                                counts[statusCol] = (counts[statusCol] || 0) + 1;
+                            }
+                        });
+
+                        const colorMap = {
+                            'Approved': '#16a34a',
+                            'Draft': '#ea580c',
+                            'Amendment by clerk': '#f59e0b',
+                            'Not verify': '#64748b',
+                            'Amendment by officer': '#d97706',
+                            'Verify': '#0284c7',
+                            'Pending verification from clerk': '#0ea5e9',
+                            'Pending': '#8b5cf6',
+                            'Not approved': '#ef4444'
+                        };
+
+                        const total = Object.values(counts).reduce((a, b) => a + b, 0) || 1;
+                        const mapped = Object.keys(counts).map(st => ({
+                            status: st,
+                            b11: counts[st],
+                            b12: counts[st],
+                            pct: Math.round((counts[st] / total) * 100),
+                            diff: 0,
+                            color: colorMap[st] || '#7A1315'
+                        })).sort((a, b) => b.b12 - a.b12);
+
+                        if (mapped.length) {
+                            currentGraData = mapped;
+                            populateTables();
+                            updateCharts();
+                            const approvedItem = currentGraData.find(d => /approved/i.test(d.status));
+                            const centerPctEl = document.getElementById('graCenterPct');
+                            if (centerPctEl && approvedItem) centerPctEl.innerText = `${approvedItem.pct}%`;
+                        }
+                    }).catch(e => console.warn('Helaian GRA dikekalkan', e));
+            }
         }
 
         function downloadOfficialExcelTemplate() {
@@ -2203,10 +2352,10 @@
                 XLSX.utils.book_append_sheet(wb, ws3, "Status Lantikan GRA");
 
                 XLSX.writeFile(wb, "Data_Performan_PMMD_Jan_hingga_26_Ogos.xlsx");
-                showToast("Templat Excel rasmi berjaya dimuat turun!");
+                showToast("Fail data templat rasmi berjaya dieksport!");
             } catch (err) {
                 console.error(err);
-                showToast("Gagal menjana fail Excel.", "error");
+                showToast("Gagal menjana fail data.", "error");
             }
         }
 
@@ -2240,7 +2389,7 @@
 
             const badge = document.getElementById('trackStatusBadge');
             badge.innerText = found.status;
-            badge.className = `px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase ${found.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`;
+            badge.className = `px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase ${found.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800'}`;
 
             for (let i = 1; i <= 4; i++) {
                 const stepEl = document.getElementById(`step-${i}`);
@@ -2262,7 +2411,7 @@
                 const li = document.createElement('li');
                 li.className = "flex items-start space-x-2";
                 li.innerHTML = `
-                    <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-utm-maroon mt-0.5 flex-shrink-0"></i>
+                    <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-utm-maroon mt-0.5 shrink-0"></i>
                     <span>${log}</span>
                 `;
                 logContainer.appendChild(li);
@@ -2301,7 +2450,7 @@
                     </div>
                     <div class="flex justify-between">
                         <span class="text-slate-400">Status Semakan:</span>
-                        <span class="font-bold uppercase px-2 py-0.5 rounded text-2xs ${app.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${app.status}</span>
+                        <span class="font-bold uppercase px-2 py-0.5 rounded text-2xs ${app.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800'}">${app.status}</span>
                     </div>
                 </div>
             `;
@@ -2337,13 +2486,12 @@
             }, 3000);
         }
 
-        // Pemuatan Mula Laman (Window Onload)
+        // Pemuatan Awal Halaman
         window.onload = function() {
             initCharts();
             populateTables();
             lucide.createIcons();
             loadGoogleSheetsCSV(false);
-            // Semak kemas kini sumber secara berkala tanpa perlu muat semula halaman.
             setInterval(() => loadGoogleSheetsCSV(false), 5 * 60 * 1000);
         };
     </script>
