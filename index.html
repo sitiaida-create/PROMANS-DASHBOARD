@@ -1954,6 +1954,93 @@
                     const dataRows = rows.slice(1);
                     let updatedSections = [];
 
+                    // Sokongan struktur CALCULATION: SOURCE, MONTH, RECORD_ID,
+                    // tempoh kerani/PPT/pegawai, TOTAL_PROCESSING_DAYS dan STATUS.
+                    const hasCalculationSchema =
+                        has('source') && has('record_id', 'record id') &&
+                        has('total_processing_days', 'total processing days', 'jumlah hari pemprosesan') &&
+                        has('status');
+                    if (hasCalculationSchema) {
+                        const getFirst = (row, aliases) => {
+                            for (const alias of aliases) {
+                                const value = val(row, alias);
+                                if (value !== '') return value;
+                            }
+                            return '';
+                        };
+                        const calcRows = dataRows.map(row => ({
+                            source: getFirst(row, ['source']),
+                            month: getFirst(row, ['month', 'bulan']),
+                            ref: getFirst(row, ['record_id', 'record id']),
+                            clerkName: getFirst(row, ['kerani_name', 'kerani name']),
+                            clerkDays: num(row, 'tempoh_kerani', 'tempoh kerani'),
+                            pptName: getFirst(row, ['ppt_name', 'ppt name']),
+                            pptDays: num(row, 'tempoh_ppt', 'tempoh ppt'),
+                            officerName: getFirst(row, ['pegawai_name', 'pegawai name']),
+                            officerDays: num(row, 'tempoh_pegawai', 'tempoh pegawai'),
+                            totalDays: num(row, 'total_processing_days', 'total processing days', 'jumlah hari pemprosesan'),
+                            status: getFirst(row, ['status']) || 'Dalam proses'
+                        })).filter(row => row.source || row.ref);
+
+                        if (calcRows.length) {
+                            const grouped = new Map();
+                            calcRows.forEach(row => {
+                                const key = row.source || 'Proses tidak dinyatakan';
+                                if (!grouped.has(key)) grouped.set(key, { proses: key, permohonan: 0, kelulusan: 0, d1_7: 0, d8_14: 0, dgt15: 0, totalDays: 0, datedCount: 0 });
+                                const g = grouped.get(key);
+                                g.permohonan++;
+                                if (/approved|lulus|selesai|complete|completed/i.test(row.status)) g.kelulusan++;
+                                if (row.totalDays > 0) {
+                                    g.totalDays += row.totalDays;
+                                    g.datedCount++;
+                                    if (row.totalDays <= 7) g.d1_7++;
+                                    else if (row.totalDays <= 14) g.d8_14++;
+                                    else g.dgt15++;
+                                }
+                            });
+                            const mappedSummary = Array.from(grouped.values()).map(g => {
+                                const timed = g.datedCount || 1;
+                                return {
+                                    proses: g.proses,
+                                    permohonan: g.permohonan,
+                                    kelulusan: g.kelulusan,
+                                    pctKelulusan: g.permohonan ? Math.round(g.kelulusan / g.permohonan * 100) : 0,
+                                    d1_7: Math.round(g.d1_7 / timed * 100),
+                                    d8_14: Math.round(g.d8_14 / timed * 100),
+                                    dgt15: Math.round(g.dgt15 / timed * 100)
+                                };
+                            });
+                            currentJanOgosData = mappedSummary;
+                            updatedSections.push('Kecekapan Proses & Semakan');
+
+                            const mappedApplications = calcRows.filter(row => row.ref).map(row => {
+                                const days = row.totalDays;
+                                const band = days > 14 ? '>15 Hari' : days >= 8 ? '8-14 Hari' : days > 0 ? '1-7 Hari' : 'Tempoh belum tersedia';
+                                const duration = days > 0 ? days + ' Hari (' + band + ')' : band;
+                                const logs = [];
+                                if (row.clerkName || row.clerkDays) logs.push('Kerani: ' + (row.clerkName || 'Tidak dinyatakan') + ' · ' + (row.clerkDays || 0) + ' hari');
+                                if (row.pptName || row.pptDays) logs.push('PPT: ' + (row.pptName || 'Tidak dinyatakan') + ' · ' + (row.pptDays || 0) + ' hari');
+                                if (row.officerName || row.officerDays) logs.push('Pegawai: ' + (row.officerName || 'Tidak dinyatakan') + ' · ' + (row.officerDays || 0) + ' hari');
+                                logs.push('Jumlah tempoh pemprosesan: ' + (days || 'Belum tersedia') + ' hari.');
+                                logs.push('Status semasa: ' + row.status + (row.month ? ' · Bulan: ' + row.month : ''));
+                                return {
+                                    ref: row.ref,
+                                    type: row.source || 'Proses tidak dinyatakan',
+                                    applicant: row.source || row.ref,
+                                    date: row.month || '-',
+                                    duration,
+                                    status: row.status,
+                                    step: /approved|lulus|selesai|complete|completed/i.test(row.status) ? 4 : 2,
+                                    logs
+                                };
+                            });
+                            if (mappedApplications.length) {
+                                sampleApplications.splice(0, sampleApplications.length, ...mappedApplications);
+                                updatedSections.push('Semakan Permohonan');
+                            }
+                        }
+                    }
+
                     const processCol = has('proses', 'nama proses', 'kategori proses', 'process') ? ['proses', 'nama proses', 'kategori proses', 'process'] : null;
                     const appCol = has('permohonan', 'jumlah permohonan', 'bilangan permohonan', 'applications', 'jumlah') ? ['permohonan', 'jumlah permohonan', 'bilangan permohonan', 'applications', 'jumlah'] : null;
                     if (processCol && appCol && (has('kelulusan', 'diluluskan', 'approved', 'jumlah kelulusan') || has('d1_7', '1-7 hari', '1 hingga 7 hari'))) {
