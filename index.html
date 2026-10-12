@@ -18,12 +18,12 @@
                 extend: {
                     colors: {
                         utm: {
-                            maroon: '#7A1315',
-                            dark: '#580c0e',
+                            maroon: '#6D28D9',
+                            dark: '#4C1D95',
                             gold: '#D4AF37',
-                            lightgold: '#FDF8EA',
-                            accent: '#9B1B1E',
-                            soft: '#fdf2f2'
+                            lightgold: '#F5F3FF',
+                            accent: '#7C3AED',
+                            soft: '#F5F3FF'
                         }
                     },
                     fontFamily: {
@@ -63,15 +63,15 @@
             background: #94a3b8;
         }
         .tab-btn.active {
-            color: #7A1315;
-            background-color: #fff1f2;
-            border-left-color: #7A1315;
+            color: #6D28D9;
+            background-color: #F5F3FF;
+            border-left-color: #6D28D9;
             font-weight: 700;
         }
         @media (max-width: 767px) {
             .tab-btn.active {
                 border-left-color: transparent;
-                border-bottom-color: #7A1315;
+                border-bottom-color: #6D28D9;
             }
         }
     </style>
@@ -1557,7 +1557,7 @@
                     labels: filteredComparisonData.map(d => d.proses),
                     datasets: [
                         { label: 'Bil. 11/2026', data: filteredComparisonData.map(d => d.p11), backgroundColor: '#94a3b8', borderRadius: 4 },
-                        { label: 'Bil. 12/2026', data: filteredComparisonData.map(d => d.p12), backgroundColor: '#7A1315', borderRadius: 4 },
+                        { label: 'Bil. 12/2026', data: filteredComparisonData.map(d => d.p12), backgroundColor: '#6D28D9', borderRadius: 4 },
                         { label: 'Peningkatan (+)', data: filteredComparisonData.map(d => d.dP), backgroundColor: '#10b981', borderRadius: 4 }
                     ]
                 },
@@ -1985,7 +1985,7 @@
                         const mapped = dataRows.map(row => {
                             const b11 = num(row, 'b11', 'bil 11', 'siri 11', 'jumlah bil 11');
                             const b12 = num(row, 'b12', 'bil 12', 'siri 12', 'jumlah semasa');
-                            return { status: val(row, 'status', 'status lantikan', 'status permohonan'), b11, b12, pct: num(row, 'pct', 'peratus', 'percentage') || 0, diff: b12-b11, color: '#7A1315' };
+                            return { status: val(row, 'status', 'status lantikan', 'status permohonan'), b11, b12, pct: num(row, 'pct', 'peratus', 'percentage') || 0, diff: b12-b11, color: '#6D28D9' };
                         }).filter(d => d.status);
                         if (mapped.length) { currentGraData = mapped; updatedSections.push('Status Lantikan GRA'); }
                     }
