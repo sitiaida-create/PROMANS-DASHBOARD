@@ -581,6 +581,7 @@
 
             <!-- TAB 3: STATUS LANTIKAN GRA -->
             <div id="tabContent-gra" class="hidden space-y-6">
+                <p id="graFilterNote" class="text-xs text-slate-500">Memuatkan rekod GRA mengikut penapis...</p>
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     <!-- Carta Donut GRA (Slaid 4) -->
                     <div class="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
@@ -1095,6 +1096,7 @@
         let currentComparisonData = JSON.parse(JSON.stringify(rawComparisonTemplateData));
         let currentGraData = JSON.parse(JSON.stringify(rawGraTemplateData));
         let currentGraRecords = { headers: [], rows: [] };
+        let filteredGraRecords = { headers: [], rows: [] };
         let currentAllApplications = { headers: [], rows: [] };
         let currentApplicationsPage = 1;
         const APPLICATIONS_PAGE_SIZE = 15;
@@ -1386,6 +1388,9 @@
 
             filteredJanOgosData = janData;
             filteredComparisonData = compData;
+
+            // Penapis global bulan/tahun turut digunakan pada carta dan senarai GRA.
+            applyGraMonthFilter(bulanVal, tahunVal);
 
             // Kira semula KPI Cards
             const totalPermohonan = filteredJanOgosData.reduce((acc, cur) => acc + cur.permohonan, 0);
@@ -2135,8 +2140,76 @@
             if (next) next.disabled = currentApplicationsPage >= totalPages;
         }
 
+        function applyGraMonthFilter(bulanVal, tahunVal) {
+            const headers = currentGraRecords.headers || [];
+            const rows = currentGraRecords.rows || [];
+            const normalized = headers.map(h => normalizeCSVHeader(h));
+            const dateCandidates = normalized.map((h, index) => ({ h, index }))
+                .filter(c => /(date|tarikh)/.test(c.h));
+            dateCandidates.sort((a, b) => {
+                const priority = h => /(submission|submitted|application|created|permohonan|hantar)/.test(h) ? 0 : 1;
+                return priority(a.h) - priority(b.h);
+            });
+            const dateIndex = dateCandidates.length ? dateCandidates[0].index : -1;
+            let selectedRows = rows;
+
+            if ((bulanVal !== 'all' || tahunVal !== 'all') && dateIndex >= 0) {
+                selectedRows = rows.filter(row => {
+                    const raw = String(row[dateIndex] || '').trim();
+                    if (!raw) return false;
+                    let month = null, year = null, match;
+                    match = raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/);
+                    if (match) {
+                        month = Number(match[2]); year = Number(match[3]);
+                        if (year < 100) year += year < 50 ? 2000 : 1900;
+                    } else {
+                        match = raw.match(/^(\d{4})[\/.-](\d{1,2})[\/.-](\d{1,2})/);
+                        if (match) { year = Number(match[1]); month = Number(match[2]); }
+                        else {
+                            const parsed = new Date(raw);
+                            if (!Number.isNaN(parsed.getTime())) { month = parsed.getMonth() + 1; year = parsed.getFullYear(); }
+                        }
+                    }
+                    return month !== null && year !== null &&
+                        (bulanVal === 'all' || month === Number(bulanVal)) &&
+                        (tahunVal === 'all' || year === Number(tahunVal));
+                });
+            }
+
+            filteredGraRecords = { headers, rows: selectedRows };
+            const statusIndex = normalized.findIndex(h => /^(status|applicationstatus|verificationstatus|statuspermohonan)$/.test(h));
+            const counts = {};
+            selectedRows.forEach(row => {
+                const status = String(row[statusIndex >= 0 ? statusIndex : 4] || '').trim();
+                if (status) counts[status] = (counts[status] || 0) + 1;
+            });
+            const colorMap = {
+                'Approved': '#16a34a', 'Draft': '#ea580c', 'Amendment by clerk': '#f59e0b',
+                'Not verify': '#64748b', 'Amendment by officer': '#d97706', 'Verify': '#0284c7',
+                'Pending verification from clerk': '#0ea5e9', 'Pending': '#8b5cf6', 'Not approved': '#ef4444'
+            };
+            const total = Object.values(counts).reduce((a, b) => a + b, 0);
+            currentGraData = Object.keys(counts).map(status => ({
+                status, b11: counts[status], b12: counts[status],
+                pct: total ? Math.round(counts[status] / total * 100) : 0, diff: 0,
+                color: colorMap[status] || '#7A1315'
+            })).sort((a, b) => b.b12 - a.b12);
+
+            const approvedItem = currentGraData.find(d => /approved/i.test(d.status));
+            const centerPctEl = document.getElementById('graCenterPct');
+            if (centerPctEl) centerPctEl.innerText = approvedItem ? approvedItem.pct + '%' : '0%';
+            currentGraPage = 1;
+            renderAllGraRecords();
+            const note = document.getElementById('graFilterNote');
+            if (note) {
+                note.textContent = (bulanVal !== 'all' || tahunVal !== 'all') && dateIndex < 0
+                    ? 'Sumber GRA tiada kolum tarikh yang dikenal pasti; penapis bulan/tahun tidak dapat digunakan untuk rekod GRA.'
+                    : selectedRows.length.toLocaleString() + ' rekod GRA mengikut penapis dipilih.';
+            }
+        }
+
         function changeGraRecordsPage(direction) {
-            const totalPages = Math.max(1, Math.ceil((currentGraRecords.rows || []).length / GRA_PAGE_SIZE));
+            const totalPages = Math.max(1, Math.ceil((filteredGraRecords.rows || []).length / GRA_PAGE_SIZE));
             currentGraPage = Math.min(totalPages, Math.max(1, currentGraPage + direction));
             renderAllGraRecords();
         }
@@ -2146,8 +2219,8 @@
             const body = document.getElementById('graRecordsBody');
             const count = document.getElementById('graRecordsCount');
             if (!head || !body || !count) return;
-            const headers = currentGraRecords.headers || [];
-            const rows = currentGraRecords.rows || [];
+            const headers = filteredGraRecords.headers || currentGraRecords.headers || [];
+            const rows = filteredGraRecords.rows || currentGraRecords.rows || [];
             const visibleColumns = headers
                 .map((label, index) => ({ label, index, normalized: String(label || '').trim().toLowerCase().replace(/[_-]+/g, ' ') }))
                 .filter(col => !/termination|action|\bic\s*(?:no|number|num|#)\b|\bno\.?\s*ic\b|identity\s*card/.test(col.normalized));
@@ -2246,46 +2319,10 @@
                         const headers = rows[0].map((h, i) => String(h || '').trim() || ('Kolum ' + (i + 1)));
                         const dataRows = rows.slice(1).filter(row => row.some(cell => String(cell || '').trim() !== ''));
                         currentGraRecords = { headers, rows: dataRows };
-                        renderAllGraRecords();
-
-                        const counts = {};
-                        dataRows.forEach(row => {
-                            const statusCol = String(row[4] !== undefined ? row[4] : row[0] || '').trim();
-                            if (statusCol) {
-                                counts[statusCol] = (counts[statusCol] || 0) + 1;
-                            }
-                        });
-
-                        const colorMap = {
-                            'Approved': '#16a34a',
-                            'Draft': '#ea580c',
-                            'Amendment by clerk': '#f59e0b',
-                            'Not verify': '#64748b',
-                            'Amendment by officer': '#d97706',
-                            'Verify': '#0284c7',
-                            'Pending verification from clerk': '#0ea5e9',
-                            'Pending': '#8b5cf6',
-                            'Not approved': '#ef4444'
-                        };
-
-                        const total = Object.values(counts).reduce((a, b) => a + b, 0) || 1;
-                        const mapped = Object.keys(counts).map(st => ({
-                            status: st,
-                            b11: counts[st],
-                            b12: counts[st],
-                            pct: Math.round((counts[st] / total) * 100),
-                            diff: 0,
-                            color: colorMap[st] || '#7A1315'
-                        })).sort((a, b) => b.b12 - a.b12);
-
-                        if (mapped.length) {
-                            currentGraData = mapped;
-                            populateTables();
-                            updateCharts();
-                            const approvedItem = currentGraData.find(d => /approved/i.test(d.status));
-                            const centerPctEl = document.getElementById('graCenterPct');
-                            if (centerPctEl && approvedItem) centerPctEl.innerText = `${approvedItem.pct}%`;
-                        }
+                        applyGraMonthFilter(
+                            document.getElementById('filterBulan')?.value || 'all',
+                            document.getElementById('filterTahun')?.value || 'all'
+                        );
                     }).catch(e => console.warn('Helaian GRA dikekalkan', e));
             }
         }
