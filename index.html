@@ -152,7 +152,6 @@
             </div>
         </aside>
 
-        <!-- Kandungan utama dashboard -->
         <main class="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 space-y-6">
 
             <!-- Bar Penapis Global -->
@@ -296,6 +295,7 @@
                     </div>
                 </div>
 
+                <!-- Kad Penunjuk Tempoh Sederhana & Lanjut -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div onclick="openProcessCasesModal('Pelantikan GRA/SRA', '8-14')" class="bg-amber-50/60 hover:bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center justify-between cursor-pointer transition shadow-2xs group" title="Klik untuk melihat permohonan dalam julat 7-14 hari">
                         <div class="flex items-center space-x-3.5">
@@ -342,6 +342,7 @@
                     </div>
                 </div>
 
+                <!-- Graf Kecekapan Proses -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <!-- Graf Bar Bertumpuk: Tempoh Hari -->
                     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
@@ -401,6 +402,7 @@
                     </div>
                 </div>
 
+                <!-- Jadual Format Templat: Kecekapan Proses -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
                     <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
@@ -440,6 +442,7 @@
                     </div>
                 </div>
 
+                <!-- Perincian Khas: Tempoh 7-14 Hari vs >15 Hari -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
                         <div>
@@ -637,6 +640,33 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Senarai Rekod Terperinci Lantikan GRA -->
+                <section class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                    <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900">Senarai Terperinci Lantikan GRA</h3>
+                            <p class="text-xs text-slate-500 mt-1">Paparan senarai rekod penama dan status pelantikan GRA daripada Google Sheets.</p>
+                        </div>
+                        <span id="graRecordsCount" class="text-xs font-bold px-2.5 py-1 bg-slate-100 rounded-lg text-slate-700">0 rekod</span>
+                    </div>
+                    <div class="overflow-auto max-h-[600px]">
+                        <table class="min-w-full text-xs text-left whitespace-nowrap">
+                            <thead id="graRecordsHead" class="bg-slate-50 sticky top-0 z-10 text-slate-700 font-bold"></thead>
+                            <tbody id="graRecordsBody" class="divide-y divide-slate-100">
+                                <tr><td class="p-4 text-slate-500">Memuatkan rekod GRA...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <span id="graRecordsPageInfo" class="text-xs text-slate-500">Paparan 0–0 daripada 0 rekod</span>
+                        <div class="flex items-center gap-2">
+                            <button id="graRecordsPrev" type="button" onclick="changeGraRecordsPage(-1)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">Sebelumnya</button>
+                            <span id="graRecordsPageNumber" class="text-xs font-semibold text-slate-600 min-w-[70px] text-center">Halaman 1/1</span>
+                            <button id="graRecordsNext" type="button" onclick="changeGraRecordsPage(1)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">Seterusnya</button>
+                        </div>
+                    </div>
+                </section>
             </div>
 
             <!-- TAB 4: SEMAKAN PERMOHONAN -->
@@ -751,7 +781,7 @@
         </main>
     </div>
 
-    <!-- MODAL MAKLUMAT LENGKAP permohonan PERMOHONAN -->
+    <!-- MODAL MAKLUMAT LENGKAP PERMOHONAN -->
     <div id="processCasesModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
         <div class="bg-white rounded-2xl max-w-5xl w-full max-h-[92vh] border border-slate-200 shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <!-- Modal Header -->
@@ -803,7 +833,7 @@
                 </div>
             </div>
 
-            <!-- Modal Body: Jadual permohonan Lengkap -->
+            <!-- Modal Body: Jadual Permohonan Lengkap -->
             <div class="p-4 sm:p-5 overflow-y-auto flex-1 space-y-3">
                 <div id="modalCasesTableWrapper" class="overflow-x-auto border border-slate-200 rounded-xl shadow-2xs">
                     <table class="w-full text-xs text-left">
@@ -1057,89 +1087,8 @@
             { status: "Pending approval from officer (RMC)", b11: 0, b12: 0, pct: 0, diff: 0, color: '#94a3b8' }
         ];
 
-        // Rekod Sampel Semakan Modul Status
-        const sampleApplications = [
-            {
-                ref: "UTM-GRA-2026-0881",
-                type: "Pelantikan GRA/SRA",
-                applicant: "Prof. Madya Dr. Norhidayah binti Ahmad",
-                date: "14 Ogos 2026",
-                duration: "3 Hari (1-7 Hari)",
-                status: "Approved",
-                step: 4,
-                logs: [
-                    "14/08/2026 09:30 - Permohonan dihantar melalui Portal RMC.",
-                    "15/08/2026 11:15 - Disemak dan disahkan oleh Kerani PMMD (Lengkap).",
-                    "16/08/2026 14:00 - Kelulusan teknikal peruntukan oleh Pegawai RMC.",
-                    "17/08/2026 10:00 - Surat pelantikan rasmi dijana dan diemelkan kepada GRA."
-                ]
-            },
-            {
-                ref: "UTM-GRA-2026-0744",
-                type: "Pelantikan GRA/SRA",
-                applicant: "Dr. Siti Salwah binti Ahmad",
-                date: "08 Ogos 2026",
-                duration: "10 Hari (7-14 Hari)",
-                status: "Approved",
-                step: 4,
-                logs: [
-                    "08/08/2026 10:00 - Permohonan pelantikan GRA dihantar.",
-                    "11/08/2026 14:30 - Penyelarasan baki vote geran bersama penyelidik.",
-                    "15/08/2026 09:40 - Semakan status pengajian pelajar dari SPS diterima.",
-                    "18/08/2026 16:00 - Kelulusan pengesahan surat tawaran dikeluarkan."
-                ]
-            },
-            {
-                ref: "UTM-SRA-2026-0412",
-                type: "Tuntutan SRA",
-                applicant: "Dr. Mohd Faisal bin Ramli",
-                date: "20 Ogos 2026",
-                duration: "2 Hari (1-7 Hari)",
-                status: "Approved",
-                step: 4,
-                logs: [
-                    "20/08/2026 14:20 - Borang tuntutan dimuat naik bersama resit perbelanjaan.",
-                    "21/08/2026 09:00 - Pengesahan semakan resit & baki vote geran.",
-                    "22/08/2026 11:30 - Tuntutan diluluskan untuk pemindahan pembayaran oleh Bendahari."
-                ]
-            },
-            {
-                ref: "UTM-END-2026-0120",
-                type: "Semakan End Report",
-                applicant: "Prof. Dr. Azman bin Hassan",
-                date: "02 Ogos 2026",
-                duration: "18 Hari (>15 Hari)",
-                status: "Pending Verification",
-                step: 2,
-                logs: [
-                    "02/08/2026 16:00 - Laporan akhir geran penyelidikan dimuat naik.",
-                    "08/08/2026 10:30 - Semakan penerbitan Scopus & paten oleh pegawai.",
-                    "20/08/2026 15:45 - Menunggu pengesahan audit kewangan penutupan akaun geran."
-                ]
-            },
-            {
-                ref: "UTM-ACT-2026-0099",
-                type: "Aktiviti luar negara",
-                applicant: "Dr. Nurul Izzati binti Zulkifli",
-                date: "18 Ogos 2026",
-                duration: "4 Hari (1-7 Hari)",
-                status: "Approved",
-                step: 4,
-                logs: [
-                    "18/08/2026 08:30 - Permohonan lawatan persidangan antarabangsa Jepun dihantar.",
-                    "19/08/2026 11:00 - Semakan peruntukan tiket dan penginapan diluluskan.",
-                    "22/08/2026 09:15 - Kelulusan kelulusan RMC & Naib Canselor dikeluarkan."
-                ]
-            }
-        ];
-
         const monthlyWeights = {
             1: 0.10, 2: 0.11, 3: 0.13, 4: 0.12, 5: 0.14, 6: 0.13, 7: 0.13, 8: 0.14
-        };
-
-        const monthNames = {
-            1: "Januari 2026", 2: "Februari 2026", 3: "Mac 2026", 4: "April 2026",
-            5: "Mei 2026", 6: "Jun 2026", 7: "Julai 2026", 8: "Ogos 2026 (sehingga 26-08-2026)"
         };
 
         let currentJanOgosData = JSON.parse(JSON.stringify(rawJanOgosTemplateData));
@@ -1165,37 +1114,8 @@
         let activeModalCasesList = [];
         let rawProcessingRecords = [];
 
-        const facultiesList = [
-            "Fakulti Kejuruteraan Elektrik (FKE)",
-            "Fakulti Kejuruteraan Mekanikal (FKM)",
-            "Fakulti Kejuruteraan Kimia & Tenaga (FKT)",
-            "Fakulti Komputeran (FC)",
-            "Fakulti Sains (FS)",
-            "Fakulti Alam Bina & Ukur (FABU)",
-            "Fakulti Sains Sosial & Kemanusiaan (FSSH)",
-            "Malaysia-Japan International Institute of Tech (MJIIT)",
-            "Azman Hashim International Business School (AHIBS)",
-            "Pusat Jaringan Penyelidikan RMC"
-        ];
-
-        const researchersList = [
-            "Prof. Dr. Ahmad Zaki bin Abdul Rashid",
-            "Prof. Madya Dr. Norhidayah binti Mohd Tahir",
-            "Dr. Siti Salwah binti Ramli",
-            "Dr. Muhammad Hafiz bin Kamaruddin",
-            "Prof. Ts. Dr. Shamsul bin Abdullah",
-            "Dr. Faridah binti Othman",
-            "Prof. Ir. Dr. Mohd Khairul bin Salleh",
-            "Dr. Nurul Izzati binti Zulkifli",
-            "Prof. Madya Dr. Wan Azman bin Hassan",
-            "Dr. Chin Wei Ling",
-            "Dr. Subramaniam a/l Murugan",
-            "Dr. Raja Norazura binti Raja Petra"
-        ];
-
         function generateCasesForProcess(processName) {
-            // Papar rekod sebenar daripada CSV, bukan rekod contoh rekaan.
-            const normalize = value => String(value || '').trim().toLowerCase().replace(/\\s+/g, ' ');
+            const normalize = value => String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
             return rawProcessingRecords
                 .filter(row => normalize(row.source) === normalize(processName))
                 .map((row, index) => {
@@ -1244,37 +1164,12 @@
                 });
         }
 
-        function getDelayedAuditNote(processName, days) {
-            if (processName.includes("End Report")) {
-                return `Mengambil masa ${days} hari disebabkan semakan penutupan akaun kewangan bersama Pejabat Bendahari serta pengesahan output berwasit (Scopus/WOS).`;
-            } else if (processName.includes("Perlanjutan")) {
-                return `Mengambil masa ${days} hari kerana memerlukan justifikasi pencapaian objektif dan kelulusan Mesyuarat Jawatankuasa Penyelidikan Universiti (JPU).`;
-            } else if (processName.includes("Progress")) {
-                return `Mengambil masa ${days} hari ekoran pembetulan laporan kemajuan dan dokumen perbelanjaan fizikal daripada penyelidik.`;
-            } else if (processName.includes("GRA") || processName.includes("RA")) {
-                return `Mengambil masa ${days} hari disebabkan penstrukturan semula baki vot perbelanjaan gaji serta verifikasi visa/pas pelajar pascasiswazah.`;
-            }
-            return `Mengambil masa ${days} hari kerana ulasan teknikal tambahan daripada pihak penaja geran luar.`;
-        }
-
-        function getMediumAuditNote(processName, days) {
-            if (processName.includes("GRA") || processName.includes("RA")) {
-                return `Tempoh ${days} hari: Menunggu pengesahan status pendaftaran aktif semester baharu daripada SPS.`;
-            } else if (processName.includes("Perlanjutan")) {
-                return `Tempoh ${days} hari: Menunggu surat sokongan dan perakuan Dekan Fakulti.`;
-            } else if (processName.includes("Pertukaran")) {
-                return `Tempoh ${days} hari: Pengesahan persetujuan bertulis daripada semua ahli penyelidik projek.`;
-            }
-            return `Tempoh ${days} hari: Semakan penyelarasan invois dan baki vot peruntukan geran.`;
-        }
-
         function openProcessCasesModal(processName, initialPeriod = 'all') {
             activeModalProcessName = processName;
             activeModalPeriodFilter = initialPeriod;
             activeModalCasesList = generateCasesForProcess(processName);
 
             document.getElementById('modalProcessTitle').innerText = processName;
-            // Lajur PPT hanya relevan untuk proses Aktiviti LN / Aktiviti luar negara.
             const showPptColumn = /aktiviti\s*(luar\s*negara|ln)\b/i.test(String(processName || '').trim());
             document.querySelectorAll('#processCasesModal .ppt-column').forEach(el => {
                 el.classList.toggle('hidden', !showPptColumn);
@@ -1409,7 +1304,7 @@
             const card = document.getElementById('selectedCaseAuditCard');
             card.classList.remove('hidden');
 
-            document.getElementById('auditCardRef').innerText = `${item.ref} - ${item.applicant} (${item.faculty})`;
+            document.getElementById('auditCardRef').innerText = `${item.ref}`;
 
             const timeline = document.getElementById('selectedCaseTimeline');
             timeline.innerHTML = '';
@@ -1428,9 +1323,9 @@
         }
 
         function exportModalCasesCSV() {
-            let csv = "No Rujukan,Kod Vot,Proses,Pemohon,Fakulti,Tarikh Mohon,Tempoh (Hari),Kategori Tempoh,Status,Nota Semakan\n";
+            let csv = "No Rujukan,Proses,Kerani,Tempoh Kerani,Pegawai,Tempoh Pegawai,Tarikh Mula,Jumlah Hari,Status\n";
             activeModalCasesList.forEach(c => {
-                csv += `"${c.ref}","${c.vot}","${c.process}","${c.applicant}","${c.faculty}","${c.dateReceived}",${c.daysTaken},"${c.periodCategory}","${c.status}","${c.auditNote.replace(/"/g, '""')}"\n`;
+                csv += `"${c.ref}","${c.process}","${c.clerkName}",${c.clerkDays},"${c.officerName}",${c.officerDays},"${c.dateReceived}",${c.daysTaken},"${c.status}"\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -1693,7 +1588,7 @@
 
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-rose-50/40 transition cursor-pointer group";
-                    tr.title = "Tekan untuk melihat maklumat lengkap bagi setiap permohonan permohonan " + r.proses;
+                    tr.title = "Tekan untuk melihat maklumat lengkap bagi setiap permohonan " + r.proses;
 
                     tr.innerHTML = `
                         <td class="py-3 px-4 font-semibold text-slate-900 group-hover:text-utm-maroon" onclick="openProcessCasesModal('${r.proses}', 'all')">
@@ -1705,7 +1600,7 @@
                         <td class="py-3 px-3 text-right font-mono" onclick="openProcessCasesModal('${r.proses}', 'all')">${r.permohonan.toLocaleString()}</td>
                         <td class="py-3 px-3 text-right font-mono font-bold text-slate-900" onclick="openProcessCasesModal('${r.proses}', 'all')">${r.kelulusan.toLocaleString()}</td>
                         <td class="py-3 px-3 text-center font-bold text-emerald-700" onclick="openProcessCasesModal('${r.proses}', 'all')">${r.pctKelulusan}%</td>
-                        <td class="py-3 px-3 text-center bg-blue-50/40 font-bold text-blue-800" onclick="openProcessCasesModal('${r.proses}', '1-7')" title="Klik untuk lihat permohonan 1-7 hari">${r.d1_7}% <span class="text-[10px] text-blue-700 font-normal">(${Math.round((r.d1_7 / 100) * r.permohonan).toLocaleString()})</span></td>
+                        <td class="py-3 px-3 text-center bg-blue-50/40 font-bold text-blue-800" onclick="openProcessCasesModal('${r.proses}', '1-7')" title="Klik untuk lihat permohonan 1-7 hari">${r.d1_7}% <span class="text-[10px] text-blue-700 font-normal">(${count1_7.toLocaleString()})</span></td>
                         <td class="py-3 px-3 text-center bg-amber-50/40 text-amber-900 font-semibold hover:bg-amber-100 transition" onclick="openProcessCasesModal('${r.proses}', '8-14')" title="Klik untuk lihat permohonan 7-14 hari">${r.d8_14}% <span class="text-[10px] text-amber-700 font-normal">(${count7_14})</span></td>
                         <td class="py-3 px-3 text-center bg-rose-50/40 text-rose-900 font-semibold hover:bg-rose-100 transition" onclick="openProcessCasesModal('${r.proses}', 'gt15')" title="Klik untuk lihat permohonan >15 hari">${r.dgt15}% <span class="text-[10px] text-rose-700 font-normal">(${countGt15})</span></td>
                         <td class="py-3 px-3 text-center">
@@ -1751,19 +1646,6 @@
                 `;
                 tBodyComp.appendChild(tr);
             });
-
-            // Populat Jadual Mikro Graf 3 (Perbandingan Siri)
-            const tBodyChartComp = document.getElementById('tbody-chart-comparison');
-            if (tBodyChartComp) {
-                tBodyChartComp.innerHTML = filteredComparisonData.map(d => `
-                    <tr class="hover:bg-slate-50">
-                        <td class="py-1 px-2 font-medium text-slate-800">${d.proses}</td>
-                        <td class="py-1 px-2 text-right font-mono text-slate-600">${d.p11.toLocaleString()}</td>
-                        <td class="py-1 px-2 text-right font-mono font-bold text-utm-maroon">${d.p12.toLocaleString()}</td>
-                        <td class="py-1 px-2 text-right font-mono font-bold ${d.dP > 0 ? 'text-emerald-700' : 'text-slate-400'}">${d.dP > 0 ? '+' + d.dP : d.dP}</td>
-                    </tr>
-                `).join('');
-            }
 
             // 3. Jadual Helaian 3: Status GRA (Kolum E)
             const tBodyGra = document.getElementById('graTableBody');
@@ -1812,35 +1694,6 @@
             const graFootTotalCount = document.getElementById('graFootTotalCount');
             if (graTotalBadge) graTotalBadge.innerText = `Jumlah: ${sumGraCases.toLocaleString()}`;
             if (graFootTotalCount) graFootTotalCount.innerText = sumGraCases.toLocaleString();
-
-            // 4. Jadual Sampel Semakan
-            const tBodySample = document.getElementById('sampleRecordsTable');
-            tBodySample.innerHTML = '';
-            sampleApplications.forEach(app => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition cursor-pointer";
-                tr.onclick = () => showDetailModal(app.ref);
-
-                let badgeColor = app.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800';
-
-                tr.innerHTML = `
-                    <td class="py-3 px-4 font-mono font-bold text-utm-maroon">${app.ref}</td>
-                    <td class="py-3 px-3 font-semibold text-slate-800">${app.type}</td>
-                    <td class="py-3 px-3 text-slate-600">${app.applicant}</td>
-                    <td class="py-3 px-3 text-slate-500">${app.date}</td>
-                    <td class="py-3 px-3 text-center">
-                        <span class="px-2 py-0.5 rounded-full text-2xs font-bold ${badgeColor}">${app.status}</span>
-                    </td>
-                    <td class="py-3 px-3 text-center">
-                        <button class="text-slate-500 hover:text-utm-maroon font-semibold inline-flex items-center space-x-1">
-                            <span>Butiran</span>
-                            <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-                        </button>
-                    </td>
-                `;
-                tBodySample.appendChild(tr);
-            });
-            lucide.createIcons();
         }
 
         function renderDurationPanels(count7_14, countGt15, totalP) {
@@ -2073,8 +1926,6 @@
                             }
                             return '';
                         };
-                        // Untuk medan PPT, padankan tajuk kolum secara tepat supaya
-                        // ia tidak tersalah ambil medan Pegawai akibat carian separa.
                         const getExactField = (row, aliases) => {
                             const wanted = aliases.map(normalizeCSVHeader);
                             const columnIndex = headers.findIndex(header => wanted.includes(header));
@@ -2097,7 +1948,6 @@
                             ref: getFirst(row, ['record_id', 'record id']),
                             clerkName: getFirst(row, ['kerani_name', 'kerani name']),
                             clerkDays: num(row, 'tempoh_kerani', 'tempoh kerani'),
-                            // Padanan tepat untuk nama dan tempoh PPT sahaja.
                             pptName: getExactField(row, ['ppt_name', 'ppt name', 'nama_ppt', 'nama ppt', 'ppt']),
                             pptDays: getExactNumber(row, ['tempoh_ppt', 'tempoh ppt', 'ppt_days', 'ppt days']),
                             officerName: getFirst(row, ['pegawai_name', 'pegawai name']),
@@ -2106,7 +1956,6 @@
                             status: getFirst(row, ['status']) || 'Draft'
                         })).filter(row => row.source || row.ref);
 
-                        // Simpan butiran sebenar untuk paparan "Papar permohonan".
                         rawProcessingRecords = calcRows.map(row => ({ ...row }));
 
                         if (calcRows.length) {
@@ -2127,8 +1976,6 @@
                                 const isERorPR = /(^|\b)(er|pr)(\b|$)/i.test(sourceLabel) ||
                                     /end\s*report|progress\s*report/i.test(sourceLabel);
                                 if (isExtension) {
-                                    // Extension: permohonan perlu nama pegawai + tempoh > 0;
-                                    // kelulusan perlu tempoh > 0 + status Approved.
                                     const y = yearOf(row.officerDate);
                                     if (row.officerName.trim() && row.officerDays > 0) {
                                         g.permohonan++;
@@ -2139,7 +1986,6 @@
                                         if (y) g.kelulusanByYear[y] = (g.kelulusanByYear[y] || 0) + 1;
                                     }
                                 } else if (isERorPR) {
-                                    // ER dan PR: kedua-dua kiraan berdasarkan nama pegawai + tempoh > 0.
                                     if (row.officerName.trim() && row.officerDays > 0) {
                                         g.permohonan++;
                                         g.kelulusan++;
@@ -2150,7 +1996,6 @@
                                         }
                                     }
                                 } else {
-                                    // Proses lain kekal: permohonan berdasarkan kerani, kelulusan berdasarkan pegawai.
                                     if (row.clerkName.trim() && row.clerkDays > 0) {
                                         g.permohonan++;
                                         const y = yearOf(row.clerkDate);
@@ -2211,7 +2056,6 @@
                         }
                     }
 
-                    // Muat helaian sampingan (Perbandingan & GRA)
                     loadSecondarySheets();
 
                     applyGlobalFilters();
@@ -2221,25 +2065,6 @@
                 })
                 .catch(error => {
                     console.error('Ralat memuatkan Google Sheets CSV:', error);
-                    const body = document.getElementById('allApplicationsBody');
-                    const head = document.getElementById('allApplicationsHead');
-                    const count = document.getElementById('allApplicationsCount');
-                    const pageInfo = document.getElementById('allApplicationsPageInfo');
-                    const pageNumber = document.getElementById('allApplicationsPageNumber');
-                    if (head) head.innerHTML = '';
-                    if (count) count.textContent = 'Data gagal dimuatkan';
-                    if (body) {
-                        body.innerHTML = '';
-                        const tr = document.createElement('tr');
-                        const td = document.createElement('td');
-                        td.className = 'p-4 text-rose-700 whitespace-normal';
-                        td.colSpan = Math.max(1, currentAllApplications.headers.length);
-                        td.textContent = 'Gagal memuatkan data Google Sheets. Klik Refresh untuk cuba lagi. Jika masih gagal, semak Tetapan (ikon gear) dan pastikan URL sumber utama ialah pautan CSV yang diterbitkan kepada web. Ralat: ' + (error && error.message ? error.message : 'Sambungan gagal.');
-                        tr.appendChild(td);
-                        body.appendChild(tr);
-                    }
-                    if (pageInfo) pageInfo.textContent = 'Data belum tersedia';
-                    if (pageNumber) pageNumber.textContent = '—';
                     if (showMessage) showToast('Gagal memuatkan CSV: ' + error.message, 'error');
                 })
                 .finally(() => {
@@ -2376,6 +2201,7 @@
             if (prev) prev.disabled = currentGraPage <= 1;
             if (next) next.disabled = currentGraPage >= totalPages;
         }
+
         function loadSecondarySheets() {
             const urls = getActiveGSheetUrls();
 
@@ -2422,7 +2248,6 @@
                         currentGraRecords = { headers, rows: dataRows };
                         renderAllGraRecords();
 
-                        // Kiraan status mengikut Kolum E
                         const counts = {};
                         dataRows.forEach(row => {
                             const statusCol = String(row[4] !== undefined ? row[4] : row[0] || '').trim();
@@ -2504,11 +2329,6 @@
             }
         }
 
-        function quickTestTracking(ref) {
-            document.getElementById('trackingInput').value = ref;
-            performTrackingSearch();
-        }
-
         function performTrackingSearch() {
             const query = document.getElementById('trackingInput').value.trim().toUpperCase();
             if (!query) {
@@ -2516,7 +2336,7 @@
                 return;
             }
 
-            const found = sampleApplications.find(a => a.ref.toUpperCase() === query || a.applicant.toUpperCase().includes(query));
+            const found = rawProcessingRecords.find(a => (a.ref && a.ref.toUpperCase().includes(query)) || (a.source && a.source.toUpperCase().includes(query)));
             const resultBox = document.getElementById('trackingResultBox');
 
             if (!found) {
@@ -2527,19 +2347,20 @@
 
             resultBox.classList.remove('hidden');
             document.getElementById('trackRefNo').innerText = found.ref;
-            document.getElementById('trackTitle').innerText = found.type;
-            document.getElementById('trackApplicant').innerText = found.applicant;
-            document.getElementById('trackDate').innerText = found.date;
-            document.getElementById('trackDuration').innerText = found.duration;
+            document.getElementById('trackTitle').innerText = found.source || 'Proses Permohonan';
+            document.getElementById('trackApplicant').innerText = found.clerkName ? `Kerani: ${found.clerkName}` : '—';
+            document.getElementById('trackDate').innerText = found.clerkDate || found.officerDate || '—';
+            document.getElementById('trackDuration').innerText = `${found.totalDays} Hari`;
 
             const badge = document.getElementById('trackStatusBadge');
             badge.innerText = found.status;
-            badge.className = `px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase ${found.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800'}`;
+            badge.className = `px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase ${/approved/i.test(found.status) ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800'}`;
 
+            const step = /approved/i.test(found.status) ? 4 : found.officerName ? 3 : found.clerkName ? 2 : 1;
             for (let i = 1; i <= 4; i++) {
                 const stepEl = document.getElementById(`step-${i}`);
                 const icon = stepEl.querySelector('.step-icon');
-                if (i <= found.step) {
+                if (i <= step) {
                     stepEl.className = "p-3.5 rounded-xl border bg-emerald-50 border-emerald-200 flex items-start space-x-3";
                     icon.className = "step-icon w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs bg-emerald-600 text-white";
                     icon.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i>';
@@ -2552,7 +2373,14 @@
 
             const logContainer = document.getElementById('trackAuditLogs');
             logContainer.innerHTML = '';
-            found.logs.forEach(log => {
+            const logs = [
+                `Tarikh Mula Kerani: ${found.clerkDate || '—'} (Tempoh: ${found.clerkDays || 0} hari)`,
+                found.pptName ? `PPT: ${found.pptName} (Tempoh: ${found.pptDays || 0} hari)` : null,
+                `Pegawai: ${found.officerName || '—'} (Tempoh: ${found.officerDays || 0} hari)`,
+                `Status Terkini: ${found.status}`
+            ].filter(Boolean);
+
+            logs.forEach(log => {
                 const li = document.createElement('li');
                 li.className = "flex items-start space-x-2";
                 li.innerHTML = `
@@ -2564,43 +2392,6 @@
 
             lucide.createIcons();
             showToast(`Rekod ${found.ref} berjaya dimuatkan.`);
-        }
-
-        function showDetailModal(ref) {
-            const app = sampleApplications.find(a => a.ref === ref);
-            if (!app) return;
-
-            const modalBody = document.getElementById('detailModalBody');
-            modalBody.innerHTML = `
-                <div class="space-y-3">
-                    <div class="flex justify-between border-b pb-2">
-                        <span class="text-slate-400">No. Rujukan:</span>
-                        <span class="font-mono font-bold text-utm-maroon">${app.ref}</span>
-                    </div>
-                    <div class="flex justify-between border-b pb-2">
-                        <span class="text-slate-400">Kategori Permohonan:</span>
-                        <span class="font-bold text-slate-800">${app.type}</span>
-                    </div>
-                    <div class="flex justify-between border-b pb-2">
-                        <span class="text-slate-400">Nama Pemohon:</span>
-                        <span class="font-semibold text-slate-800">${app.applicant}</span>
-                    </div>
-                    <div class="flex justify-between border-b pb-2">
-                        <span class="text-slate-400">Tarikh Dihantar:</span>
-                        <span class="text-slate-700">${app.date}</span>
-                    </div>
-                    <div class="flex justify-between border-b pb-2">
-                        <span class="text-slate-400">Tempoh Masa:</span>
-                        <span class="font-bold text-blue-700">${app.duration}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-400">Status Semakan:</span>
-                        <span class="font-bold uppercase px-2 py-0.5 rounded text-2xs ${app.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800'}">${app.status}</span>
-                    </div>
-                </div>
-            `;
-            document.getElementById('detailModal').classList.remove('hidden');
-            lucide.createIcons();
         }
 
         function closeDetailModal() {
