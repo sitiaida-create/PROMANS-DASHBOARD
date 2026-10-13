@@ -2126,10 +2126,10 @@
                                 const key = row.source || 'Proses tidak dinyatakan';
                                 if (!grouped.has(key)) grouped.set(key, { proses: key, permohonan: 0, kelulusan: 0, d1_7: 0, d8_14: 0, dgt15: 0, totalDays: 0, datedCount: 0 });
                                 const g = grouped.get(key);
-                                // Jumlah permohonan dikira hanya apabila nama kerani semakan diisi.
-                                if (row.clerkName.trim()) g.permohonan++;
-                                // Jumlah kelulusan dikira berdasarkan nama pegawai yang meluluskan.
-                                if (row.officerName.trim()) g.kelulusan++;
+                                // Jumlah permohonan: mesti ada nama kerani dan tempoh semakan yang sah.
+                                if (row.clerkName.trim() && row.clerkDays > 0) g.permohonan++;
+                                // Jumlah kelulusan: mesti ada nama pegawai pelulus dan tempoh semakan yang sah.
+                                if (row.officerName.trim() && row.officerDays > 0) g.kelulusan++;
                                 if (row.totalDays > 0) {
                                     g.totalDays += row.totalDays;
                                     g.datedCount++;
