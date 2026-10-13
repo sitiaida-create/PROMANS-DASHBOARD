@@ -1964,7 +1964,21 @@
                             officerDays: num(row, 'tempoh_pegawai', 'tempoh pegawai'),
                             totalDays: num(row, 'total_processing_days', 'total processing days', 'jumlah hari pemprosesan'),
                             status: getFirst(row, ['status']) || 'Draft'
-                        })).filter(row => row.source || row.ref);
+                        })).filter(row => row.source || row.ref).map(row => {
+                            // Permohonan Extension/Perlanjutan hanya melalui semakan pegawai, bukan semakan kerani.
+                            if (/extension|perlanjutan/i.test(String(row.source || ''))) {
+                                return {
+                                    ...row,
+                                    clerkDate: '',
+                                    clerkReceivedDate: '',
+                                    clerkForwardedDate: '',
+                                    clerkName: '',
+                                    clerkDays: 0,
+                                    totalDays: Number(row.officerDays) || 0
+                                };
+                            }
+                            return row;
+                        });
 
                         rawProcessingRecords = calcRows.map(row => ({ ...row }));
 
@@ -2428,8 +2442,32 @@
             document.getElementById('trackRefNo').innerText = found.ref;
             document.getElementById('trackTitle').innerText = found.source || 'Proses Permohonan';
             document.getElementById('trackApplicant').innerText = found.clerkName ? `Kerani: ${found.clerkName}` : '—';
+            const isExtensionRequest = /extension|perlanjutan/i.test(String(found.source || ''));
             document.getElementById('trackDate').innerText = found.clerkDate || found.officerDate || '—';
             document.getElementById('trackDuration').innerText = `${found.totalDays} Hari`;
+
+            // Sembunyikan peringkat kerani bagi Extension dan paparkan aliran tiga peringkat.
+            const stepGrid = document.querySelector('#trackingResultBox .grid.grid-cols-1.md\\:grid-cols-4');
+            const clerkStep = document.getElementById('step-2');
+            if (clerkStep) clerkStep.classList.toggle('hidden', isExtensionRequest);
+            if (stepGrid) {
+                stepGrid.classList.toggle('md:grid-cols-4', !isExtensionRequest);
+                stepGrid.classList.toggle('md:grid-cols-3', isExtensionRequest);
+            }
+            const step1 = document.getElementById('step-1');
+            const step3 = document.getElementById('step-3');
+            const step4 = document.getElementById('step-4');
+            if (isExtensionRequest) {
+                step1.querySelector('div:last-child .text-xs').innerText = 'Penyerahan Permohonan';
+                step3.querySelector('div:last-child .text-xs').innerText = 'Semakan Pegawai RMC';
+                step3.querySelector('div:last-child .text-\\[11px\\]').innerText = 'Semakan Extension/Perlanjutan';
+                step4.querySelector('div:last-child .text-xs').innerText = 'Keputusan Pegawai';
+            } else {
+                step1.querySelector('div:last-child .text-xs').innerText = 'Penyerahan';
+                step3.querySelector('div:last-child .text-xs').innerText = 'Semakan Pegawai RMC';
+                step3.querySelector('div:last-child .text-\\[11px\\]').innerText = 'Pematuhan Bajet/Syarat';
+                step4.querySelector('div:last-child .text-xs').innerText = 'Keputusan Akhir';
+            }
 
             const badge = document.getElementById('trackStatusBadge');
             badge.innerText = found.status;
@@ -2438,6 +2476,7 @@
             const step = /approved/i.test(found.status) ? 4 : found.officerName ? 3 : found.clerkName ? 2 : 1;
             for (let i = 1; i <= 4; i++) {
                 const stepEl = document.getElementById(`step-${i}`);
+                if (isExtensionRequest && i === 2) continue;
                 const icon = stepEl.querySelector('.step-icon');
                 if (i <= step) {
                     stepEl.className = "p-3.5 rounded-xl border bg-emerald-50 border-emerald-200 flex items-start space-x-3";
