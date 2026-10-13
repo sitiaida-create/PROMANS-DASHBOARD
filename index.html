@@ -2155,8 +2155,8 @@
                                 // ER dan PR: kiraan permohonan/kelulusan berdasarkan rekod pegawai
                                 // yang mempunyai tempoh pemprosesan. Kelulusan hanya dikira jika status Approved.
                                 const sourceLabel = String(row.source || '').trim().toLowerCase();
-                                const isERorPR = /(^|\\b)(er|pr)(\\b|$)/i.test(sourceLabel) ||
-                                    /end\\s*report|progress\\s*report/i.test(sourceLabel);
+                                const isERorPR = /(^|\b)(er|pr)(\b|$)/i.test(sourceLabel) ||
+                                    /end\s*report|progress\s*report/i.test(sourceLabel);
                                 if (isERorPR) {
                                     if (row.officerName.trim() && row.officerDays > 0) {
                                         g.permohonan++;
