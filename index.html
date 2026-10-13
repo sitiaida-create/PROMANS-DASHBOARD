@@ -1099,6 +1099,7 @@
         let filteredGraRecords = { headers: [], rows: [] };
         let selectedGraStatus = null;
         let currentAllApplications = { headers: [], rows: [] };
+        let applicationSearchQuery = '';
         let currentApplicationsPage = 1;
         const APPLICATIONS_PAGE_SIZE = 15;
         let currentGraPage = 1;
@@ -2093,7 +2094,11 @@
             const count = document.getElementById('allApplicationsCount');
             if (!head || !body || !count) return;
             const headers = currentAllApplications.headers || [];
-            const rows = currentAllApplications.rows || [];
+            const allRows = currentAllApplications.rows || [];
+            const query = String(applicationSearchQuery || '').trim().toLowerCase();
+            const rows = query
+                ? allRows.filter(row => row.some(cell => String(cell ?? '').toLowerCase().includes(query)))
+                : allRows;
             const totalPages = Math.max(1, Math.ceil(rows.length / APPLICATIONS_PAGE_SIZE));
             currentApplicationsPage = Math.min(totalPages, Math.max(1, currentApplicationsPage));
             const startIndex = rows.length ? (currentApplicationsPage - 1) * APPLICATIONS_PAGE_SIZE : 0;
@@ -2401,9 +2406,14 @@
         function performTrackingSearch() {
             const query = document.getElementById('trackingInput').value.trim().toUpperCase();
             if (!query) {
-                showToast("Sila masukkan No. Rujukan permohonan.", "warning");
+                showToast("Sila masukkan No. Rujukan permohonan atau No. Vot Geran.", "warning");
                 return;
             }
+
+            // Gunakan carian yang sama untuk menapis jadual Semua Maklumat Permohonan.
+            applicationSearchQuery = query;
+            currentApplicationsPage = 1;
+            renderAllApplications();
 
             const found = rawProcessingRecords.find(a => (a.ref && a.ref.toUpperCase().includes(query)) || (a.source && a.source.toUpperCase().includes(query)));
             const resultBox = document.getElementById('trackingResultBox');
