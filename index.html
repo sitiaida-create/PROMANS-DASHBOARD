@@ -2152,12 +2152,24 @@
                                     const d = new Date(s);
                                     return s && !Number.isNaN(d.getTime()) ? String(d.getFullYear()) : '';
                                 };
-                                // ER dan PR: permohonan dan kelulusan dikira berdasarkan rekod pegawai
-                                // yang mempunyai nama pegawai dan tempoh pemprosesan melebihi 0 hari.
                                 const sourceLabel = String(row.source || '').trim().toLowerCase();
+                                const isExtension = /extension|perlanjutan/i.test(sourceLabel);
                                 const isERorPR = /(^|\b)(er|pr)(\b|$)/i.test(sourceLabel) ||
                                     /end\s*report|progress\s*report/i.test(sourceLabel);
-                                if (isERorPR) {
+                                if (isExtension) {
+                                    // Extension: permohonan perlu nama pegawai + tempoh > 0;
+                                    // kelulusan perlu tempoh > 0 + status Approved.
+                                    const y = yearOf(row.officerDate);
+                                    if (row.officerName.trim() && row.officerDays > 0) {
+                                        g.permohonan++;
+                                        if (y) g.permohonanByYear[y] = (g.permohonanByYear[y] || 0) + 1;
+                                    }
+                                    if (row.officerDays > 0 && /^approved$/i.test(String(row.status || '').trim())) {
+                                        g.kelulusan++;
+                                        if (y) g.kelulusanByYear[y] = (g.kelulusanByYear[y] || 0) + 1;
+                                    }
+                                } else if (isERorPR) {
+                                    // ER dan PR: kedua-dua kiraan berdasarkan nama pegawai + tempoh > 0.
                                     if (row.officerName.trim() && row.officerDays > 0) {
                                         g.permohonan++;
                                         g.kelulusan++;
