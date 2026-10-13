@@ -1198,8 +1198,8 @@
                     const logs = [];
                     if (row.clerkName || row.clerkDate || row.clerkReceivedDate || row.clerkForwardedDate || row.clerkDays) {
                         logs.push('Kerani: ' + (row.clerkName || 'Tidak dinyatakan') +
-                            ' | Tarikh terima: ' + (row.clerkReceivedDate || row.clerkDate || '—') +
-                            ' | Tarikh dimajukan: ' + (row.clerkForwardedDate || '—') +
+                            ' | Tarikh Terima: ' + (row.clerkReceivedDate || row.clerkDate || '—') +
+                            ' | Tarikh Dimajukan: ' + (row.clerkForwardedDate || '—') +
                             ' | Tempoh: ' + (Number(row.clerkDays) || 0) + ' hari');
                     }
                     if (row.pptName || row.pptDays) {
@@ -1208,8 +1208,8 @@
                     }
                     if (row.officerName || row.officerDate || row.officerApprovalDate || row.officerDays) {
                         logs.push('Pegawai: ' + (row.officerName || 'Tidak dinyatakan') +
-                            ' | Tarikh mula: ' + (row.officerDate || '—') +
-                            ' | Tarikh kelulusan: ' + (row.officerApprovalDate || '—') +
+                            ' | Tarikh Terima: ' + (row.officerDate || '—') +
+                            ' | Tarikh Kelulusan: ' + (row.officerApprovalDate || '—') +
                             ' | Tempoh: ' + (Number(row.officerDays) || 0) + ' hari');
                     }
                     logs.push('Status dalam data sumber: ' + (row.status || 'Tidak dinyatakan'));
