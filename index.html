@@ -807,12 +807,12 @@
                     <table class="w-full text-xs text-left">
                         <thead class="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold uppercase text-[10px] tracking-wider">
                             <tr>
-                                <th class="py-2.5 px-3">No. Rujukan &amp; Kod Vot</th>
-                                <th class="py-2.5 px-3">Ketua Penyelidik / Pemohon</th>
-                                <th class="py-2.5 px-3">Fakulti / Pusat</th>
-                                <th class="py-2.5 px-3 text-center">Tarikh Mohon</th>
-                                <th class="py-2.5 px-3 text-center">Tempoh Proses</th>
-                                <th class="py-2.5 px-3">Peringkat &amp; Nota Audit Pegawai</th>
+                                <th class="py-2.5 px-3">ID Rekod / Proses</th>
+                                <th class="py-2.5 px-3">Kerani / Tempoh</th>
+                                <th class="py-2.5 px-3">PPT / Tempoh</th>
+                                <th class="py-2.5 px-3">Pegawai / Tempoh</th>
+                                <th class="py-2.5 px-3 text-center">Tarikh Mula</th>
+                                <th class="py-2.5 px-3 text-center">Jumlah Hari Proses</th>
                                 <th class="py-2.5 px-3 text-center">Status</th>
                                 <th class="py-2.5 px-3 text-center">Tindakan</th>
                             </tr>
@@ -1153,6 +1153,7 @@
         let activeModalProcessName = "";
         let activeModalPeriodFilter = "all";
         let activeModalCasesList = [];
+        let rawProcessingRecords = [];
 
         const facultiesList = [
             "Fakulti Kejuruteraan Elektrik (FKE)",
@@ -1183,126 +1184,52 @@
         ];
 
         function generateCasesForProcess(processName) {
-            const processMeta = rawJanOgosTemplateData.find(p => p.proses === processName) || {
-                permohonan: 100, kelulusan: 95, pctKelulusan: 95, d1_7: 85, d8_14: 10, dgt15: 5
-            };
-
-            const prefixMap = {
-                "Aktiviti dalam negara": "ACT-MY",
-                "Aktiviti luar negara": "ACT-INT",
-                "Pelantikan RA/RO": "RA-RO",
-                "Pelantikan GRA/SRA": "GRA-SRA",
-                "Tuntutan SRA": "CLM-SRA",
-                "Semakan End Report": "END-REP",
-                "Semakan Progress Report": "PROG-REP",
-                "Pengaktifan Geran": "GRNT-ACT",
-                "Pertukaran ketua/ahli projek": "PRJ-CHG",
-                "Perlanjutan tempoh": "EXT-PRJ"
-            };
-
-            const codePrefix = prefixMap[processName] || "UTM-PMMD";
-            const sampleCount = Math.min(60, processMeta.permohonan);
-            const cases = [];
-
-            const countGt15 = Math.max(processMeta.dgt15 > 0 ? 1 : 0, Math.round((processMeta.dgt15 / 100) * sampleCount));
-            const count8_14 = Math.max(processMeta.d8_14 > 0 ? 1 : 0, Math.round((processMeta.d8_14 / 100) * sampleCount));
-            const count1_7 = Math.max(1, sampleCount - countGt15 - count8_14);
-
-            let caseIndex = 1;
-
-            // 1. permohonan >15 Hari
-            for (let i = 0; i < countGt15; i++) {
-                const dayNum = 16 + (i * 3) % 18;
-                const ref = `UTM/${codePrefix}/2026/${String(1000 + caseIndex).slice(1)}`;
-                const res = researchersList[(caseIndex * 3) % researchersList.length];
-                const fac = facultiesList[(caseIndex * 2) % facultiesList.length];
-                const vot = `Q.J130000.2554.${20 + (caseIndex % 30)}H${10 + (caseIndex % 80)}`;
-                const isApproved = i % 8 !== 0;
-
-                cases.push({
-                    ref: ref,
-                    vot: vot,
-                    process: processName,
-                    applicant: res,
-                    faculty: fac,
-                    dateReceived: `${Math.max(1, 26 - dayNum)}/0${Math.min(8, Math.max(5, 8 - Math.floor(dayNum / 10)))}/2026`,
-                    daysTaken: dayNum,
-                    periodCategory: "gt15",
-                    currentStage: isApproved ? "Selesai (Diluluskan)" : "Menunggu Tindakan Pemohon",
-                    status: isApproved ? "Approved" : "Draft",
-                    auditNote: getDelayedAuditNote(processName, dayNum),
-                    logs: [
-                        `Hari 1: Permohonan diterima dan didaftarkan ke dalam sistem RADIS/RMC.`,
-                        `Hari 4: Semakan syarat umum asas oleh kerani bertugas.`,
-                        `Hari 9: Ulasan lanjut teknikal peruntukan/dokumen bersama penyelidik.`,
-                        `Hari ${Math.floor(dayNum * 0.75)}: Siasatan audit kewangan baki vot / verifikasi output penerbitan.`,
-                        `Hari ${dayNum}: ${isApproved ? 'Kelulusan muktamad diberikan dan direkodkan ke sistem PMMD.' : 'Menunggu tindakan susulan pemohon bagi pindaan draf laporan.'}`
-                    ]
+            // Papar rekod sebenar daripada CSV, bukan rekod contoh rekaan.
+            const normalize = value => String(value || '').trim().toLowerCase().replace(/\\s+/g, ' ');
+            return rawProcessingRecords
+                .filter(row => normalize(row.source) === normalize(processName))
+                .map((row, index) => {
+                    const days = Number(row.totalDays) || 0;
+                    const periodCategory = days >= 1 && days <= 7 ? '1-7' :
+                        days >= 8 && days <= 14 ? '8-14' :
+                        days > 14 ? 'gt15' : 'unknown';
+                    const logs = [];
+                    if (row.clerkName || row.clerkDate || row.clerkDays) {
+                        logs.push('Kerani: ' + (row.clerkName || 'Tidak dinyatakan') +
+                            (row.clerkDate ? ' | Tarikh mula: ' + row.clerkDate : '') +
+                            ' | Tempoh: ' + (Number(row.clerkDays) || 0) + ' hari');
+                    }
+                    if (row.pptName || row.pptDays) {
+                        logs.push('PPT: ' + (row.pptName || 'Tidak dinyatakan') +
+                            ' | Tempoh: ' + (Number(row.pptDays) || 0) + ' hari');
+                    }
+                    if (row.officerName || row.officerDate || row.officerDays) {
+                        logs.push('Pegawai: ' + (row.officerName || 'Tidak dinyatakan') +
+                            (row.officerDate ? ' | Tarikh mula: ' + row.officerDate : '') +
+                            ' | Tempoh: ' + (Number(row.officerDays) || 0) + ' hari');
+                    }
+                    if (row.status) logs.push('Status dalam data sumber: ' + row.status);
+                    return {
+                        ref: row.ref || 'Rekod ' + (index + 1),
+                        vot: '—',
+                        process: row.source || processName,
+                        applicant: '—',
+                        faculty: '—',
+                        dateReceived: row.clerkDate || row.officerDate || '—',
+                        daysTaken: days,
+                        periodCategory,
+                        currentStage: row.officerName ? 'Peringkat pegawai' : row.clerkName ? 'Peringkat kerani' : 'Peringkat tidak dinyatakan',
+                        status: row.status || 'Tidak dinyatakan',
+                        clerkName: row.clerkName || '—',
+                        clerkDays: Number(row.clerkDays) || 0,
+                        pptName: row.pptName || '—',
+                        pptDays: Number(row.pptDays) || 0,
+                        officerName: row.officerName || '—',
+                        officerDays: Number(row.officerDays) || 0,
+                        auditNote: 'Maklumat dipaparkan berdasarkan medan yang tersedia dalam CSV sumber. Tiada maklumat tambahan direka.',
+                        logs
+                    };
                 });
-                caseIndex++;
-            }
-
-            // 2. permohonan 7-14 Hari
-            for (let i = 0; i < count8_14; i++) {
-                const dayNum = 8 + (i * 2) % 7;
-                const ref = `UTM/${codePrefix}/2026/${String(1000 + caseIndex).slice(1)}`;
-                const res = researchersList[(caseIndex * 5) % researchersList.length];
-                const fac = facultiesList[(caseIndex * 3) % facultiesList.length];
-                const vot = `FRGS/1/2025/TK0${(caseIndex % 6) + 1}/UTM/02/${(caseIndex % 4) + 1}`;
-                const isApproved = i % 10 !== 0;
-
-                cases.push({
-                    ref: ref,
-                    vot: vot,
-                    process: processName,
-                    applicant: res,
-                    faculty: fac,
-                    dateReceived: `${Math.max(1, 26 - dayNum)}/08/2026`,
-                    daysTaken: dayNum,
-                    periodCategory: "8-14",
-                    currentStage: isApproved ? "Selesai (Diluluskan)" : "Penyediaan Draf Semula",
-                    status: isApproved ? "Approved" : "Draft",
-                    auditNote: getMediumAuditNote(processName, dayNum),
-                    logs: [
-                        `Hari 1: Penyerahan borang dan lampiran sokongan disahkan.`,
-                        `Hari 3: Semakan integriti baki vot penyelidikan oleh kerani kewangan.`,
-                        `Hari 7: Penyelarasan surat tawaran / status pendaftaran dengan SPS/Fakulti.`,
-                        `Hari ${dayNum}: Kelulusan pengesahan dikeluarkan secara rasmi.`
-                    ]
-                });
-                caseIndex++;
-            }
-
-            // 3. permohonan 1-7 Hari (Pantas)
-            for (let i = 0; i < count1_7; i++) {
-                const dayNum = 1 + (i % 6);
-                const ref = `UTM/${codePrefix}/2026/${String(1000 + caseIndex).slice(1)}`;
-                const res = researchersList[(caseIndex * 7) % researchersList.length];
-                const fac = facultiesList[(caseIndex * 4) % facultiesList.length];
-                const vot = `Q.J130000.24M1.${10 + (caseIndex % 40)}H${30 + (caseIndex % 60)}`;
-
-                cases.push({
-                    ref: ref,
-                    vot: vot,
-                    process: processName,
-                    applicant: res,
-                    faculty: fac,
-                    dateReceived: `${Math.max(1, 26 - dayNum)}/08/2026`,
-                    daysTaken: dayNum,
-                    periodCategory: "1-7",
-                    currentStage: "Selesai (Diluluskan)",
-                    status: "Approved",
-                    auditNote: `Pemprosesan pantas di bawah had Piagam Pelanggan (${dayNum} hari bekerja). Dokumen lengkap dan vot berstatus aktif.`,
-                    logs: [
-                        `Hari 1: Permohonan lengkap diterima secara digital.`,
-                        `Hari ${Math.max(1, Math.floor(dayNum / 2))}: Semakan peruntukan disahkan serta merta.`,
-                        `Hari ${dayNum}: Surat kelulusan rasmi dikeluarkan dan dimaklumkan kepada pemohon.`
-                    ]
-                });
-                caseIndex++;
-            }
-
-            return cases;
         }
 
         function getDelayedAuditNote(processName, days) {
@@ -1335,11 +1262,13 @@
             activeModalCasesList = generateCasesForProcess(processName);
 
             document.getElementById('modalProcessTitle').innerText = processName;
-            const procMeta = rawJanOgosTemplateData.find(p => p.proses === processName);
-            const totalCount = procMeta ? procMeta.permohonan : activeModalCasesList.length;
-            const pctApp = procMeta ? procMeta.pctKelulusan : 98;
-            
-            document.getElementById('modalProcessBadge').innerText = `${totalCount.toLocaleString()} Permohonan (${pctApp}% Lulus)`;
+            const procMeta = currentJanOgosData.find(p => p.proses === processName);
+            const totalCount = activeModalCasesList.length;
+            const pctApp = procMeta ? procMeta.pctKelulusan : 0;
+
+            document.getElementById('modalProcessBadge').innerText = rawProcessingRecords.length
+                ? `${totalCount.toLocaleString()} Rekod Data (${pctApp}% Kelulusan)`
+                : 'Tiada rekod terperinci dalam CSV';
 
             const countAll = activeModalCasesList.length;
             const count1_7 = activeModalCasesList.filter(c => c.periodCategory === '1-7').length;
@@ -1412,7 +1341,7 @@
             document.getElementById('modalShownCount').innerText = list.length;
 
             if (list.length === 0) {
-                tBody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-400">Tiada rekod permohonan ditemui bagi kriteria penapisan ini.</td></tr>`;
+                tBody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-400">Tiada rekod data sumber ditemui bagi proses atau tempoh ini.</td></tr>`;
                 return;
             }
 
@@ -1434,16 +1363,13 @@
                 tr.innerHTML = `
                     <td class="py-2.5 px-3">
                         <div class="font-mono font-bold text-utm-maroon">${c.ref}</div>
-                        <div class="text-[10px] text-slate-500 font-mono">${c.vot}</div>
+                        <div class="text-[10px] text-slate-500">${c.process}</div>
                     </td>
-                    <td class="py-2.5 px-3 font-semibold text-slate-900">${c.applicant}</td>
-                    <td class="py-2.5 px-3 text-slate-600 text-[11px]">${c.faculty}</td>
+                    <td class="py-2.5 px-3 text-slate-700">${c.clerkName}<div class="text-[10px] text-slate-500">${c.clerkDays} hari</div></td>
+                    <td class="py-2.5 px-3 text-slate-700">${c.pptName}<div class="text-[10px] text-slate-500">${c.pptDays} hari</div></td>
+                    <td class="py-2.5 px-3 text-slate-700">${c.officerName}<div class="text-[10px] text-slate-500">${c.officerDays} hari</div></td>
                     <td class="py-2.5 px-3 text-center text-slate-500 font-mono text-[11px]">${c.dateReceived}</td>
-                    <td class="py-2.5 px-3 text-center">${dayBadge}</td>
-                    <td class="py-2.5 px-3 max-w-xs">
-                        <div class="font-semibold text-slate-800">${c.currentStage}</div>
-                        <div class="text-[10px] text-slate-500 truncate" title="${c.auditNote}">${c.auditNote}</div>
-                    </td>
+                    <td class="py-2.5 px-3 text-center">${c.daysTaken > 0 ? dayBadge : '—'}</td>
                     <td class="py-2.5 px-3 text-center">
                         <span class="px-2 py-0.5 rounded-full text-2xs font-bold uppercase border ${statusColor}">${c.status}</span>
                     </td>
@@ -2141,6 +2067,9 @@
                             totalDays: num(row, 'total_processing_days', 'total processing days', 'jumlah hari pemprosesan'),
                             status: getFirst(row, ['status']) || 'Draft'
                         })).filter(row => row.source || row.ref);
+
+                        // Simpan butiran sebenar untuk paparan "Papar permohonan".
+                        rawProcessingRecords = calcRows.map(row => ({ ...row }));
 
                         if (calcRows.length) {
                             const grouped = new Map();
