@@ -2147,7 +2147,10 @@
             const dateCandidates = normalized.map((h, index) => ({ h, index }))
                 .filter(c => /(date|tarikh)/.test(c.h));
             dateCandidates.sort((a, b) => {
-                const priority = h => /(submission|submitted|application|created|permohonan|hantar)/.test(h) ? 0 : 1;
+                // Untuk kiraan permohonan yang diproses, utamakan Approved Date.
+                const priority = h => /approveddate|dateapproved|tarikhlulus|tarikhapproved/.test(h) ? 0 :
+                    /(approvaldate|dateapproval|tarikhkelulusan|tarikhpengesahan)/.test(h) ? 1 :
+                    /(submission|submitted|application|created|permohonan|hantar)/.test(h) ? 2 : 3;
                 return priority(a.h) - priority(b.h);
             });
             const dateIndex = dateCandidates.length ? dateCandidates[0].index : -1;
