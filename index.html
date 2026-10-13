@@ -2221,6 +2221,25 @@
                 })
                 .catch(error => {
                     console.error('Ralat memuatkan Google Sheets CSV:', error);
+                    const body = document.getElementById('allApplicationsBody');
+                    const head = document.getElementById('allApplicationsHead');
+                    const count = document.getElementById('allApplicationsCount');
+                    const pageInfo = document.getElementById('allApplicationsPageInfo');
+                    const pageNumber = document.getElementById('allApplicationsPageNumber');
+                    if (head) head.innerHTML = '';
+                    if (count) count.textContent = 'Data gagal dimuatkan';
+                    if (body) {
+                        body.innerHTML = '';
+                        const tr = document.createElement('tr');
+                        const td = document.createElement('td');
+                        td.className = 'p-4 text-rose-700 whitespace-normal';
+                        td.colSpan = Math.max(1, currentAllApplications.headers.length);
+                        td.textContent = 'Gagal memuatkan data Google Sheets. Klik Refresh untuk cuba lagi. Jika masih gagal, semak Tetapan (ikon gear) dan pastikan URL sumber utama ialah pautan CSV yang diterbitkan kepada web. Ralat: ' + (error && error.message ? error.message : 'Sambungan gagal.');
+                        tr.appendChild(td);
+                        body.appendChild(tr);
+                    }
+                    if (pageInfo) pageInfo.textContent = 'Data belum tersedia';
+                    if (pageNumber) pageNumber.textContent = '—';
                     if (showMessage) showToast('Gagal memuatkan CSV: ' + error.message, 'error');
                 })
                 .finally(() => {
