@@ -639,33 +639,6 @@
                 </div>
             </div>
 
-            <!-- Semua maklumat rekod GRA daripada helaian sumber -->
-            <section class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-                <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-900">Semua Maklumat Lantikan GRA</h3>
-                        <p class="text-xs text-slate-500 mt-1">Paparan semua kolum dan rekod daripada Google Sheet sumber GRA.</p>
-                    </div>
-                    <span id="graRecordsCount" class="text-xs font-bold px-2.5 py-1 bg-slate-100 rounded-lg text-slate-700">0 rekod</span>
-                </div>
-                <div class="overflow-auto max-h-[650px]">
-                    <table class="min-w-full text-xs text-left whitespace-nowrap">
-                        <thead id="graRecordsHead" class="bg-slate-50 sticky top-0 z-10 text-slate-700 font-bold"></thead>
-                        <tbody id="graRecordsBody" class="divide-y divide-slate-100">
-                            <tr><td class="p-4 text-slate-500">Memuatkan maklumat GRA daripada Google Sheets...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <span id="graRecordsPageInfo" class="text-xs text-slate-500">Paparan 0–0 daripada 0 rekod</span>
-                    <div class="flex items-center gap-2">
-                        <button id="graRecordsPrev" type="button" onclick="changeGraRecordsPage(-1)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">Sebelumnya</button>
-                        <span id="graRecordsPageNumber" class="text-xs font-semibold text-slate-600 min-w-[70px] text-center">Halaman 1/1</span>
-                        <button id="graRecordsNext" type="button" onclick="changeGraRecordsPage(1)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">Seterusnya</button>
-                    </div>
-                </div>
-            </section>
-
             <!-- TAB 4: SEMAKAN PERMOHONAN -->
             <div id="tabContent-semakan" class="hidden space-y-6">
                 <!-- Kad Carian Semakan -->
@@ -748,30 +721,32 @@
                     </div>
                 </div>
 
-                <!-- Senarai Contoh Permohonan Aktif -->
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-                    <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
+                <!-- Semua maklumat semua permohonan daripada sumber utama -->
+                <section class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                    <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div>
-                            <h3 class="text-sm font-bold text-slate-900">Senarai Permohonan Terkini dalam Pangkalan Data</h3>
-                            <p class="text-xs text-slate-400">Klik baris untuk menyemak maklumat terperinci</p>
+                            <h3 class="text-sm font-bold text-slate-900">Semua Maklumat Permohonan</h3>
+                            <p class="text-xs text-slate-500 mt-1">Paparan semua lajur dan rekod permohonan daripada Google Sheets sumber utama.</p>
                         </div>
+                        <span id="allApplicationsCount" class="text-xs font-bold px-2.5 py-1 bg-slate-100 rounded-lg text-slate-700">0 rekod</span>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-xs text-left">
-                            <thead class="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold uppercase text-[11px]">
-                                <tr>
-                                    <th class="py-3 px-4">No. Rujukan</th>
-                                    <th class="py-3 px-3">Jenis Permohonan</th>
-                                    <th class="py-3 px-3">Pemohon / Ketua Projek</th>
-                                    <th class="py-3 px-3">Tarikh Hantar</th>
-                                    <th class="py-3 px-3 text-center">Status</th>
-                                    <th class="py-3 px-3 text-center">Tindakan</th>
-                                </tr>
-                            </thead>
-                            <tbody id="sampleRecordsTable" class="divide-y divide-slate-100"></tbody>
+                    <div class="overflow-auto max-h-[650px]">
+                        <table class="min-w-full text-xs text-left whitespace-nowrap">
+                            <thead id="allApplicationsHead" class="bg-slate-50 sticky top-0 z-10 text-slate-700 font-bold"></thead>
+                            <tbody id="allApplicationsBody" class="divide-y divide-slate-100">
+                                <tr><td class="p-4 text-slate-500">Memuatkan semua maklumat permohonan daripada Google Sheets...</td></tr>
+                            </tbody>
                         </table>
                     </div>
-                </div>
+                    <div class="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <span id="allApplicationsPageInfo" class="text-xs text-slate-500">Paparan 0–0 daripada 0 rekod</span>
+                        <div class="flex items-center gap-2">
+                            <button id="allApplicationsPrev" type="button" onclick="changeApplicationsPage(-1)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">Sebelumnya</button>
+                            <span id="allApplicationsPageNumber" class="text-xs font-semibold text-slate-600 min-w-[70px] text-center">Halaman 1/1</span>
+                            <button id="allApplicationsNext" type="button" onclick="changeApplicationsPage(1)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">Seterusnya</button>
+                        </div>
+                    </div>
+                </section>
             </div>
         </main>
     </div>
@@ -1171,6 +1146,9 @@
         let currentComparisonData = JSON.parse(JSON.stringify(rawComparisonTemplateData));
         let currentGraData = JSON.parse(JSON.stringify(rawGraTemplateData));
         let currentGraRecords = { headers: [], rows: [] };
+        let currentAllApplications = { headers: [], rows: [] };
+        let currentApplicationsPage = 1;
+        const APPLICATIONS_PAGE_SIZE = 15;
         let currentGraPage = 1;
         const GRA_PAGE_SIZE = 15;
 
@@ -2074,6 +2052,12 @@
                     const num = (row, ...aliases) => { const raw = val(row, ...aliases).replace(/[% ,]/g, ''); const n = Number(raw); return Number.isFinite(n) ? n : 0; };
                     const has = (...aliases) => idx(...aliases) >= 0;
                     const dataRows = rows.slice(1);
+                    currentAllApplications = {
+                        headers: rows[0].map((header, index) => String(header || '').trim() || ('Kolum ' + (index + 1))),
+                        rows: dataRows.filter(row => row.some(cell => String(cell || '').trim() !== ''))
+                    };
+                    currentApplicationsPage = 1;
+                    renderAllApplications();
                     let updatedSections = [];
 
                     // Skema Pengiraan Rekod Mentah
@@ -2242,6 +2226,69 @@
                 .finally(() => {
                     if (refreshButton) refreshButton.disabled = false;
                 });
+        }
+
+        function changeApplicationsPage(direction) {
+            const totalPages = Math.max(1, Math.ceil((currentAllApplications.rows || []).length / APPLICATIONS_PAGE_SIZE));
+            currentApplicationsPage = Math.min(totalPages, Math.max(1, currentApplicationsPage + direction));
+            renderAllApplications();
+        }
+
+        function renderAllApplications() {
+            const head = document.getElementById('allApplicationsHead');
+            const body = document.getElementById('allApplicationsBody');
+            const count = document.getElementById('allApplicationsCount');
+            if (!head || !body || !count) return;
+            const headers = currentAllApplications.headers || [];
+            const rows = currentAllApplications.rows || [];
+            const totalPages = Math.max(1, Math.ceil(rows.length / APPLICATIONS_PAGE_SIZE));
+            currentApplicationsPage = Math.min(totalPages, Math.max(1, currentApplicationsPage));
+            const startIndex = rows.length ? (currentApplicationsPage - 1) * APPLICATIONS_PAGE_SIZE : 0;
+            const pageRows = rows.slice(startIndex, startIndex + APPLICATIONS_PAGE_SIZE);
+            count.textContent = rows.length.toLocaleString() + ' rekod';
+            head.innerHTML = '';
+            body.innerHTML = '';
+            if (!headers.length) {
+                body.innerHTML = '<tr><td class="p-4 text-slate-500">Tiada data permohonan tersedia. Semak URL CSV pada tetapan dashboard.</td></tr>';
+            } else {
+                const headerRow = document.createElement('tr');
+                headers.forEach(label => {
+                    const th = document.createElement('th');
+                    th.className = 'py-3 px-4 border-b border-slate-200';
+                    th.textContent = label;
+                    headerRow.appendChild(th);
+                });
+                head.appendChild(headerRow);
+                if (!rows.length) {
+                    const tr = document.createElement('tr');
+                    const td = document.createElement('td');
+                    td.className = 'p-4 text-slate-500';
+                    td.colSpan = headers.length;
+                    td.textContent = 'Tiada rekod permohonan ditemui.';
+                    tr.appendChild(td);
+                    body.appendChild(tr);
+                } else {
+                    pageRows.forEach((row, pageIndex) => {
+                        const tr = document.createElement('tr');
+                        tr.className = (startIndex + pageIndex) % 2 ? 'bg-slate-50/70 hover:bg-rose-50/40' : 'bg-white hover:bg-rose-50/40';
+                        headers.forEach((_, colIndex) => {
+                            const td = document.createElement('td');
+                            td.className = 'py-2.5 px-4 text-slate-700';
+                            td.textContent = String(row[colIndex] ?? '').trim();
+                            tr.appendChild(td);
+                        });
+                        body.appendChild(tr);
+                    });
+                }
+            }
+            const pageInfo = document.getElementById('allApplicationsPageInfo');
+            const pageNumber = document.getElementById('allApplicationsPageNumber');
+            const prev = document.getElementById('allApplicationsPrev');
+            const next = document.getElementById('allApplicationsNext');
+            if (pageInfo) pageInfo.textContent = rows.length ? `Paparan ${startIndex + 1}–${Math.min(startIndex + APPLICATIONS_PAGE_SIZE, rows.length)} daripada ${rows.length.toLocaleString()} rekod` : 'Paparan 0–0 daripada 0 rekod';
+            if (pageNumber) pageNumber.textContent = `Halaman ${currentApplicationsPage}/${totalPages}`;
+            if (prev) prev.disabled = currentApplicationsPage <= 1;
+            if (next) next.disabled = currentApplicationsPage >= totalPages;
         }
 
         function changeGraRecordsPage(direction) {
