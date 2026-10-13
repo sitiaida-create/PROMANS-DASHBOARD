@@ -2492,8 +2492,8 @@
             const logContainer = document.getElementById('trackAuditLogs');
             logContainer.innerHTML = '';
             const logs = [
-                `Tarikh Mula Kerani: ${found.clerkDate || '—'} (Tempoh: ${found.clerkDays || 0} hari)`,
-                found.pptName ? `PPT: ${found.pptName} (Tempoh: ${found.pptDays || 0} hari)` : null,
+                !isExtensionRequest ? `Tarikh Mula Kerani: ${found.clerkDate || '—'} (Tempoh: ${found.clerkDays || 0} hari)` : null,
+                found.pptName && !isExtensionRequest ? `PPT: ${found.pptName} (Tempoh: ${found.pptDays || 0} hari)` : null,
                 `Pegawai: ${found.officerName || '—'} (Tempoh: ${found.officerDays || 0} hari)`,
                 `Status Terkini: ${found.status}`
             ].filter(Boolean);
