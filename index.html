@@ -2206,6 +2206,8 @@
                     ? 'Sumber GRA tiada kolum tarikh yang dikenal pasti; penapis bulan/tahun tidak dapat digunakan untuk rekod GRA.'
                     : selectedRows.length.toLocaleString() + ' rekod GRA mengikut penapis dipilih.';
             }
+            populateTables();
+            updateCharts();
         }
 
         function changeGraRecordsPage(direction) {
