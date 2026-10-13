@@ -2152,16 +2152,33 @@
                                     const d = new Date(s);
                                     return s && !Number.isNaN(d.getTime()) ? String(d.getFullYear()) : '';
                                 };
-                                // Kiraan tahun berdasarkan tarikh mula semakan masing-masing.
-                                if (row.clerkName.trim() && row.clerkDays > 0) {
-                                    g.permohonan++;
-                                    const y = yearOf(row.clerkDate);
-                                    if (y) g.permohonanByYear[y] = (g.permohonanByYear[y] || 0) + 1;
-                                }
-                                if (row.officerName.trim() && row.officerDays > 0) {
-                                    g.kelulusan++;
-                                    const y = yearOf(row.officerDate);
-                                    if (y) g.kelulusanByYear[y] = (g.kelulusanByYear[y] || 0) + 1;
+                                // ER dan PR: kiraan permohonan/kelulusan berdasarkan rekod pegawai
+                                // yang mempunyai tempoh pemprosesan. Kelulusan hanya dikira jika status Approved.
+                                const sourceLabel = String(row.source || '').trim().toLowerCase();
+                                const isERorPR = /(^|\\b)(er|pr)(\\b|$)/i.test(sourceLabel) ||
+                                    /end\\s*report|progress\\s*report/i.test(sourceLabel);
+                                if (isERorPR) {
+                                    if (row.officerName.trim() && row.officerDays > 0) {
+                                        g.permohonan++;
+                                        const y = yearOf(row.officerDate);
+                                        if (y) g.permohonanByYear[y] = (g.permohonanByYear[y] || 0) + 1;
+                                        if (/^approved$/i.test(String(row.status || '').trim())) {
+                                            g.kelulusan++;
+                                            if (y) g.kelulusanByYear[y] = (g.kelulusanByYear[y] || 0) + 1;
+                                        }
+                                    }
+                                } else {
+                                    // Proses lain kekal: permohonan berdasarkan kerani, kelulusan berdasarkan pegawai.
+                                    if (row.clerkName.trim() && row.clerkDays > 0) {
+                                        g.permohonan++;
+                                        const y = yearOf(row.clerkDate);
+                                        if (y) g.permohonanByYear[y] = (g.permohonanByYear[y] || 0) + 1;
+                                    }
+                                    if (row.officerName.trim() && row.officerDays > 0) {
+                                        g.kelulusan++;
+                                        const y = yearOf(row.officerDate);
+                                        if (y) g.kelulusanByYear[y] = (g.kelulusanByYear[y] || 0) + 1;
+                                    }
                                 }
                                 if (row.totalDays > 0) {
                                     g.totalDays += row.totalDays;
