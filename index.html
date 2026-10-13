@@ -297,7 +297,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div onclick="openProcessCasesModal('Pelantikan GRA/SRA', '8-14')" class="bg-amber-50/60 hover:bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center justify-between cursor-pointer transition shadow-2xs group" title="Klik untuk melihat kes dalam julat 7-14 hari">
+                    <div onclick="openProcessCasesModal('Pelantikan GRA/SRA', '8-14')" class="bg-amber-50/60 hover:bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center justify-between cursor-pointer transition shadow-2xs group" title="Klik untuk melihat permohonan dalam julat 7-14 hari">
                         <div class="flex items-center space-x-3.5">
                             <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-xs">
                                 <i data-lucide="clock" class="w-5 h-5"></i>
@@ -308,18 +308,18 @@
                                     <i data-lucide="external-link" class="w-3 h-3 text-amber-600 opacity-0 group-hover:opacity-100 transition"></i>
                                 </div>
                                 <div class="flex items-baseline space-x-2 mt-0.5">
-                                    <span class="text-xl font-extrabold text-amber-900" id="kpiCount7_14">226 kes</span>
+                                    <span class="text-xl font-extrabold text-amber-900" id="kpiCount7_14">226 permohonan</span>
                                     <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full" id="kpiPct7_14">5.3%</span>
                                 </div>
                             </div>
                         </div>
                         <div class="text-right hidden sm:block">
                             <span class="text-[11px] text-amber-800 font-medium block">Penyumbang Terbesar:</span>
-                            <span class="text-xs font-bold text-amber-950" id="kpiTop7_14">Pelantikan GRA/SRA (149 kes)</span>
+                            <span class="text-xs font-bold text-amber-950" id="kpiTop7_14">Pelantikan GRA/SRA (149 permohonan)</span>
                         </div>
                     </div>
 
-                    <div onclick="openProcessCasesModal('Semakan End Report', 'gt15')" class="bg-rose-50/70 hover:bg-rose-50 border border-rose-200 p-4 rounded-2xl flex items-center justify-between cursor-pointer transition shadow-2xs group" title="Klik untuk melihat kes melebihi 15 hari">
+                    <div onclick="openProcessCasesModal('Semakan End Report', 'gt15')" class="bg-rose-50/70 hover:bg-rose-50 border border-rose-200 p-4 rounded-2xl flex items-center justify-between cursor-pointer transition shadow-2xs group" title="Klik untuk melihat permohonan melebihi 15 hari">
                         <div class="flex items-center space-x-3.5">
                             <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center font-bold shadow-xs">
                                 <i data-lucide="alert-octagon" class="w-5 h-5"></i>
@@ -330,7 +330,7 @@
                                     <i data-lucide="external-link" class="w-3 h-3 text-rose-600 opacity-0 group-hover:opacity-100 transition"></i>
                                 </div>
                                 <div class="flex items-baseline space-x-2 mt-0.5">
-                                    <span class="text-xl font-extrabold text-rose-900" id="kpiCountGt15">261 kes</span>
+                                    <span class="text-xl font-extrabold text-rose-900" id="kpiCountGt15">261 permohonan</span>
                                     <span class="text-xs font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full" id="kpiPctGt15">6.1%</span>
                                 </div>
                             </div>
@@ -407,7 +407,7 @@
                             <div class="flex items-center space-x-2">
                                 <h3 class="text-sm font-bold text-slate-900">Jadual Format Templat: Kecekapan Proses dan Semakan Permohonan</h3>
                                 <span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-200 flex items-center gap-1">
-                                    <i data-lucide="mouse-pointer-click" class="w-3 h-3"></i> Interaktif: Klik baris untuk senarai kes
+                                    <i data-lucide="mouse-pointer-click" class="w-3 h-3"></i> Interaktif: Klik baris untuk senarai permohonan
                                 </span>
                             </div>
                             <p class="text-xs text-slate-400 mt-0.5">Data bersumberkan Helaian 1 templat Excel. Tekan mana-mana baris untuk melihat rekod audit fail.</p>
@@ -427,8 +427,8 @@
                                     <th class="py-3 px-3 text-right">Jumlah Kelulusan</th>
                                     <th class="py-3 px-3 text-center">% Kelulusan</th>
                                     <th class="py-3 px-3 text-center bg-blue-50/70 text-blue-900">(%) 1-7 Hari</th>
-                                    <th class="py-3 px-3 text-center bg-amber-50/70 text-amber-900">(%) 7-14 Hari [Kes]</th>
-                                    <th class="py-3 px-3 text-center bg-rose-50/70 text-rose-900">(%) &gt;15 Hari [Kes]</th>
+                                    <th class="py-3 px-3 text-center bg-amber-50/70 text-amber-900">(%) 7-14 Hari [permohonan]</th>
+                                    <th class="py-3 px-3 text-center bg-rose-50/70 text-rose-900">(%) &gt;15 Hari [permohonan]</th>
                                     <th class="py-3 px-3 text-center">Tindakan</th>
                                 </tr>
                             </thead>
@@ -447,9 +447,9 @@
                                 <i data-lucide="layers" class="w-4 h-4 text-utm-maroon"></i>
                                 <span>Perincian Khas: Permohonan Mengambil Masa 7-14 Hari vs &gt;15 Hari</span>
                             </h3>
-                            <p class="text-xs text-slate-500">Pecahan bilangan kes sebenar, analisis faktor kelewatan, serta langkah penyelesaian bagi pengurusan penyelidikan UTM.</p>
+                            <p class="text-xs text-slate-500">Pecahan bilangan permohonan sebenar, analisis faktor kelewatan, serta langkah penyelesaian bagi pengurusan penyelidikan UTM.</p>
                         </div>
-                        <span class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700">Jumlah Terlibat: <strong id="combinedDelayedTotal">487 Kes</strong> (11.4%)</span>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700">Jumlah Terlibat: <strong id="combinedDelayedTotal">487 permohonan</strong> (11.4%)</span>
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -474,9 +474,9 @@
                                     <span>Punca &amp; Faktor Pemprosesan 7-14 Hari:</span>
                                 </div>
                                 <ul class="list-disc list-inside space-y-1 text-[11px] text-slate-600">
-                                    <li><strong>Pelantikan GRA/SRA (149 kes / 17%)</strong>: Keperluan semakan baki vot peruntukan geran serta pengesahan pendaftaran aktif oleh SPS.</li>
-                                    <li><strong>Perlanjutan Tempoh (43 kes / 13%)</strong>: Menunggu ulasan dan sokongan bertulis daripada Pengarah Pusat Penyelidikan / Dekan Fakulti.</li>
-                                    <li><strong>Pelantikan RA/RO (14 kes / 7%)</strong>: Semakan kelayakan sijil akademik &amp; kontrak perjawatan pembantu penyelidik.</li>
+                                    <li><strong>Pelantikan GRA/SRA (149 permohonan / 17%)</strong>: Keperluan semakan baki vot peruntukan geran serta pengesahan pendaftaran aktif oleh SPS.</li>
+                                    <li><strong>Perlanjutan Tempoh (43 permohonan / 13%)</strong>: Menunggu ulasan dan sokongan bertulis daripada Pengarah Pusat Penyelidikan / Dekan Fakulti.</li>
+                                    <li><strong>Pelantikan RA/RO (14 permohonan / 7%)</strong>: Semakan kelayakan sijil akademik &amp; kontrak perjawatan pembantu penyelidik.</li>
                                 </ul>
                             </div>
                         </div>
@@ -502,9 +502,9 @@
                                     <span>Punca &amp; Justifikasi Tempoh &gt;15 Hari:</span>
                                 </div>
                                 <ul class="list-disc list-inside space-y-1 text-[11px] text-slate-600">
-                                    <li><strong>Semakan End Report (49 kes / 38%)</strong>: Pengesahan penerbitan berwasit (Scopus/WoS), paten, serta audit kewangan penutupan akaun bersama Pejabat Bendahari.</li>
-                                    <li><strong>Perlanjutan Tempoh (79 kes / 24%)</strong>: Justifikasi teknikal pencapaian sebelum kelulusan Jawatankuasa Penyelidikan Universiti (JPU).</li>
-                                    <li><strong>Semakan Progress Report (123 kes / 11%)</strong>: Pembetulan laporan kemajuan dan dokumen perbelanjaan daripada ketua projek.</li>
+                                    <li><strong>Semakan End Report (49 permohonan / 38%)</strong>: Pengesahan penerbitan berwasit (Scopus/WoS), paten, serta audit kewangan penutupan akaun bersama Pejabat Bendahari.</li>
+                                    <li><strong>Perlanjutan Tempoh (79 permohonan / 24%)</strong>: Justifikasi teknikal pencapaian sebelum kelulusan Jawatankuasa Penyelidikan Universiti (JPU).</li>
+                                    <li><strong>Semakan Progress Report (123 permohonan / 11%)</strong>: Pembetulan laporan kemajuan dan dokumen perbelanjaan daripada ketua projek.</li>
                                 </ul>
                             </div>
                         </div>
@@ -749,7 +749,7 @@
         </main>
     </div>
 
-    <!-- MODAL MAKLUMAT LENGKAP KES PERMOHONAN -->
+    <!-- MODAL MAKLUMAT LENGKAP permohonan PERMOHONAN -->
     <div id="processCasesModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
         <div class="bg-white rounded-2xl max-w-5xl w-full max-h-[92vh] border border-slate-200 shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <!-- Modal Header -->
@@ -763,7 +763,7 @@
                             <h3 class="text-base font-bold text-slate-900" id="modalProcessTitle">Pelantikan GRA/SRA</h3>
                             <span id="modalProcessBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">878 Permohonan</span>
                         </div>
-                        <p class="text-xs text-slate-500 mt-0.5">Senarai terperinci semua kes fail yang diproses, status kelulusan, dan rekod masa pemprosesan sebenar.</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Senarai terperinci semua permohonan fail yang diproses, status kelulusan, dan rekod masa pemprosesan sebenar.</p>
                     </div>
                 </div>
 
@@ -782,7 +782,7 @@
             <div class="p-3 sm:px-5 border-b border-slate-100 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl text-xs font-medium overflow-x-auto">
                     <button onclick="filterModalCasesByPeriod('all')" id="btnFilterCaseAll" class="px-3 py-1.5 rounded-lg bg-white font-bold text-utm-maroon shadow-xs transition whitespace-nowrap">
-                        Semua Kes (<span id="modalCountAll">0</span>)
+                        Semua permohonan (<span id="modalCountAll">0</span>)
                     </button>
                     <button onclick="filterModalCasesByPeriod('1-7')" id="btnFilterCase1_7" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-blue-700 hover:bg-white/60 transition whitespace-nowrap">
                         1-7 Hari [Pantas] (<span id="modalCount1_7">0</span>)
@@ -801,7 +801,7 @@
                 </div>
             </div>
 
-            <!-- Modal Body: Jadual Kes Lengkap -->
+            <!-- Modal Body: Jadual permohonan Lengkap -->
             <div class="p-4 sm:p-5 overflow-y-auto flex-1 space-y-3">
                 <div id="modalCasesTableWrapper" class="overflow-x-auto border border-slate-200 rounded-xl shadow-2xs">
                     <table class="w-full text-xs text-left">
@@ -821,7 +821,7 @@
                     </table>
                 </div>
 
-                <!-- Kad Maklumat Log Tindakan Kes Terpilih -->
+                <!-- Kad Maklumat Log Tindakan permohonan Terpilih -->
                 <div id="selectedCaseAuditCard" class="hidden p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5 transition">
                     <div class="flex items-center justify-between border-b border-slate-200 pb-2">
                         <div class="flex items-center space-x-2">
@@ -839,7 +839,7 @@
             <!-- Modal Footer -->
             <div class="p-3 sm:p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
                 <div class="text-slate-500 text-[11px]">
-                    Memaparkan <strong id="modalShownCount" class="text-slate-800">0</strong> kes yang sepadan. Klik butang <span class="font-bold text-utm-maroon">Kronologi</span> untuk melihat jejak audit setiap fail.
+                    Memaparkan <strong id="modalShownCount" class="text-slate-800">0</strong> permohonan yang sepadan. Klik butang <span class="font-bold text-utm-maroon">Kronologi</span> untuk melihat jejak audit setiap fail.
                 </div>
                 <button onclick="closeProcessCasesModal()" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold rounded-xl text-xs transition">
                     Tutup Paparan
@@ -1210,7 +1210,7 @@
 
             let caseIndex = 1;
 
-            // 1. Kes >15 Hari
+            // 1. permohonan >15 Hari
             for (let i = 0; i < countGt15; i++) {
                 const dayNum = 16 + (i * 3) % 18;
                 const ref = `UTM/${codePrefix}/2026/${String(1000 + caseIndex).slice(1)}`;
@@ -1242,7 +1242,7 @@
                 caseIndex++;
             }
 
-            // 2. Kes 7-14 Hari
+            // 2. permohonan 7-14 Hari
             for (let i = 0; i < count8_14; i++) {
                 const dayNum = 8 + (i * 2) % 7;
                 const ref = `UTM/${codePrefix}/2026/${String(1000 + caseIndex).slice(1)}`;
@@ -1273,7 +1273,7 @@
                 caseIndex++;
             }
 
-            // 3. Kes 1-7 Hari (Pantas)
+            // 3. permohonan 1-7 Hari (Pantas)
             for (let i = 0; i < count1_7; i++) {
                 const dayNum = 1 + (i % 6);
                 const ref = `UTM/${codePrefix}/2026/${String(1000 + caseIndex).slice(1)}`;
@@ -1412,7 +1412,7 @@
             document.getElementById('modalShownCount').innerText = list.length;
 
             if (list.length === 0) {
-                tBody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-400">Tiada rekod kes ditemui bagi kriteria penapisan ini.</td></tr>`;
+                tBody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-400">Tiada rekod permohonan ditemui bagi kriteria penapisan ini.</td></tr>`;
                 return;
             }
 
@@ -1500,7 +1500,7 @@
             link.click();
             document.body.removeChild(link);
 
-            showToast(`Senarai kes bagi "${activeModalProcessName}" berjaya dieksport.`);
+            showToast(`Senarai permohonan bagi "${activeModalProcessName}" berjaya dieksport.`);
         }
 
         function applyGlobalFilters() {
@@ -1716,7 +1716,7 @@
                         },
                         tooltip: {
                             callbacks: {
-                                label: ctx => `${ctx.label}: ${ctx.raw} kes (${currentGraData[ctx.dataIndex].pct}%)`
+                                label: ctx => `${ctx.label}: ${ctx.raw} permohonan (${currentGraData[ctx.dataIndex].pct}%)`
                             }
                         }
                     }
@@ -1748,7 +1748,7 @@
 
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-rose-50/40 transition cursor-pointer group";
-                    tr.title = "Tekan untuk melihat maklumat lengkap bagi setiap kes permohonan " + r.proses;
+                    tr.title = "Tekan untuk melihat maklumat lengkap bagi setiap permohonan permohonan " + r.proses;
 
                     tr.innerHTML = `
                         <td class="py-3 px-4 font-semibold text-slate-900 group-hover:text-utm-maroon" onclick="openProcessCasesModal('${r.proses}', 'all')">
@@ -1761,11 +1761,11 @@
                         <td class="py-3 px-3 text-right font-mono font-bold text-slate-900" onclick="openProcessCasesModal('${r.proses}', 'all')">${r.kelulusan.toLocaleString()}</td>
                         <td class="py-3 px-3 text-center font-bold text-emerald-700" onclick="openProcessCasesModal('${r.proses}', 'all')">${r.pctKelulusan}%</td>
                         <td class="py-3 px-3 text-center bg-blue-50/40 font-bold text-blue-800" onclick="openProcessCasesModal('${r.proses}', '1-7')">${r.d1_7}%</td>
-                        <td class="py-3 px-3 text-center bg-amber-50/40 text-amber-900 font-semibold hover:bg-amber-100 transition" onclick="openProcessCasesModal('${r.proses}', '8-14')" title="Klik untuk lihat kes 7-14 hari">${r.d8_14}% <span class="text-[10px] text-amber-700 font-normal">(${count7_14})</span></td>
-                        <td class="py-3 px-3 text-center bg-rose-50/40 text-rose-900 font-semibold hover:bg-rose-100 transition" onclick="openProcessCasesModal('${r.proses}', 'gt15')" title="Klik untuk lihat kes >15 hari">${r.dgt15}% <span class="text-[10px] text-rose-700 font-normal">(${countGt15})</span></td>
+                        <td class="py-3 px-3 text-center bg-amber-50/40 text-amber-900 font-semibold hover:bg-amber-100 transition" onclick="openProcessCasesModal('${r.proses}', '8-14')" title="Klik untuk lihat permohonan 7-14 hari">${r.d8_14}% <span class="text-[10px] text-amber-700 font-normal">(${count7_14})</span></td>
+                        <td class="py-3 px-3 text-center bg-rose-50/40 text-rose-900 font-semibold hover:bg-rose-100 transition" onclick="openProcessCasesModal('${r.proses}', 'gt15')" title="Klik untuk lihat permohonan >15 hari">${r.dgt15}% <span class="text-[10px] text-rose-700 font-normal">(${countGt15})</span></td>
                         <td class="py-3 px-3 text-center">
                             <button onclick="openProcessCasesModal('${r.proses}', 'all')" class="inline-flex items-center space-x-1 px-2.5 py-1 bg-slate-100 hover:bg-utm-maroon hover:text-white text-slate-700 font-bold rounded-lg text-2xs transition">
-                                <span>Papar Kes</span>
+                                <span>Papar permohonan</span>
                                 <i data-lucide="chevron-right" class="w-3 h-3"></i>
                             </button>
                         </td>
@@ -1782,8 +1782,8 @@
                 <td class="py-3 px-3 text-right font-mono font-bold text-utm-maroon">${totK.toLocaleString()}</td>
                 <td class="py-3 px-3 text-center font-bold text-emerald-700">${totPct}%</td>
                 <td class="py-3 px-3 text-center font-bold text-blue-900 bg-blue-100/50">-</td>
-                <td class="py-3 px-3 text-center font-bold text-amber-950 bg-amber-100/50">${sumCount7_14.toLocaleString()} kes</td>
-                <td class="py-3 px-3 text-center font-bold text-rose-950 bg-rose-100/50">${sumCountGt15.toLocaleString()} kes</td>
+                <td class="py-3 px-3 text-center font-bold text-amber-950 bg-amber-100/50">${sumCount7_14.toLocaleString()} permohonan</td>
+                <td class="py-3 px-3 text-center font-bold text-rose-950 bg-rose-100/50">${sumCountGt15.toLocaleString()} permohonan</td>
                 <td class="py-3 px-3 text-center text-slate-500 italic">Tekan mana-mana baris</td>
             `;
 
@@ -1856,7 +1856,7 @@
                             <span class="font-medium text-slate-700">${r.status}</span>
                         </div>
                         <div class="flex items-center space-x-2 font-mono">
-                            <span class="font-bold text-slate-900">${r.b12} kes</span>
+                            <span class="font-bold text-slate-900">${r.b12} permohonan</span>
                             <span class="text-slate-500 font-semibold">(${r.pct}%)</span>
                         </div>
                     </div>
@@ -1899,8 +1899,8 @@
         }
 
         function renderDurationPanels(count7_14, countGt15, totalP) {
-            document.getElementById('kpiCount7_14').innerText = `${count7_14.toLocaleString()} kes`;
-            document.getElementById('kpiCountGt15').innerText = `${countGt15.toLocaleString()} kes`;
+            document.getElementById('kpiCount7_14').innerText = `${count7_14.toLocaleString()} permohonan`;
+            document.getElementById('kpiCountGt15').innerText = `${countGt15.toLocaleString()} permohonan`;
 
             const pct7_14 = totalP > 0 ? ((count7_14 / totalP) * 100).toFixed(1) : '0.0';
             const pctGt15 = totalP > 0 ? ((countGt15 / totalP) * 100).toFixed(1) : '0.0';
@@ -1913,7 +1913,7 @@
 
             const combinedCount = count7_14 + countGt15;
             const combinedPct = totalP > 0 ? ((combinedCount / totalP) * 100).toFixed(1) : '0.0';
-            document.getElementById('combinedDelayedTotal').innerText = `${combinedCount.toLocaleString()} Kes (${combinedPct}%)`;
+            document.getElementById('combinedDelayedTotal').innerText = `${combinedCount.toLocaleString()} permohonan (${combinedPct}%)`;
 
             // Senarai 7-14 Hari
             const list7_14 = filteredJanOgosData
@@ -1935,14 +1935,14 @@
                     const el = document.createElement('div');
                     el.className = "flex items-center justify-between p-2 rounded-lg bg-white border border-amber-200/70 text-xs hover:border-amber-400 hover:bg-amber-50/50 cursor-pointer transition shadow-2xs group";
                     el.onclick = () => openProcessCasesModal(item.proses, '8-14');
-                    el.title = `Klik untuk papar ${item.count} kes 7-14 hari bagi ${item.proses}`;
+                    el.title = `Klik untuk papar ${item.count} permohonan 7-14 hari bagi ${item.proses}`;
                     el.innerHTML = `
                         <div class="flex items-center space-x-2">
                             <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                             <span class="font-medium text-slate-800 group-hover:text-amber-900">${item.proses}</span>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <span class="font-mono font-bold text-amber-900">${item.count.toLocaleString()} kes</span>
+                            <span class="font-mono font-bold text-amber-900">${item.count.toLocaleString()} permohonan</span>
                             <span class="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-semibold border border-amber-200">${item.pct}%</span>
                             <i data-lucide="chevron-right" class="w-3 h-3 text-amber-500 group-hover:translate-x-0.5 transition"></i>
                         </div>
@@ -1971,14 +1971,14 @@
                     const el = document.createElement('div');
                     el.className = "flex items-center justify-between p-2 rounded-lg bg-white border border-rose-200/70 text-xs hover:border-rose-400 hover:bg-rose-50/50 cursor-pointer transition shadow-2xs group";
                     el.onclick = () => openProcessCasesModal(item.proses, 'gt15');
-                    el.title = `Klik untuk papar ${item.count} kes >15 hari bagi ${item.proses}`;
+                    el.title = `Klik untuk papar ${item.count} permohonan >15 hari bagi ${item.proses}`;
                     el.innerHTML = `
                         <div class="flex items-center space-x-2">
                             <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
                             <span class="font-medium text-slate-800 group-hover:text-rose-900">${item.proses}</span>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <span class="font-mono font-bold text-rose-900">${item.count.toLocaleString()} kes</span>
+                            <span class="font-mono font-bold text-rose-900">${item.count.toLocaleString()} permohonan</span>
                             <span class="text-[10px] text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded font-semibold border border-rose-200">${item.pct}%</span>
                             <i data-lucide="chevron-right" class="w-3 h-3 text-rose-500 group-hover:translate-x-0.5 transition"></i>
                         </div>
@@ -1988,10 +1988,10 @@
             }
 
             if (list7_14.length > 0) {
-                document.getElementById('kpiTop7_14').innerText = `${list7_14[0].proses} (${list7_14[0].count} kes)`;
+                document.getElementById('kpiTop7_14').innerText = `${list7_14[0].proses} (${list7_14[0].count} permohonan)`;
             }
             if (listGt15.length > 0) {
-                document.getElementById('kpiTopGt15').innerText = `${listGt15[0].proses} (${listGt15[0].count} kes)`;
+                document.getElementById('kpiTopGt15').innerText = `${listGt15[0].proses} (${listGt15[0].count} permohonan)`;
             }
             lucide.createIcons();
         }
