@@ -1760,7 +1760,7 @@
                         <td class="py-3 px-3 text-right font-mono" onclick="openProcessCasesModal('${r.proses}', 'all')">${r.permohonan.toLocaleString()}</td>
                         <td class="py-3 px-3 text-right font-mono font-bold text-slate-900" onclick="openProcessCasesModal('${r.proses}', 'all')">${r.kelulusan.toLocaleString()}</td>
                         <td class="py-3 px-3 text-center font-bold text-emerald-700" onclick="openProcessCasesModal('${r.proses}', 'all')">${r.pctKelulusan}%</td>
-                        <td class="py-3 px-3 text-center bg-blue-50/40 font-bold text-blue-800" onclick="openProcessCasesModal('${r.proses}', '1-7')">${r.d1_7}%</td>
+                        <td class="py-3 px-3 text-center bg-blue-50/40 font-bold text-blue-800" onclick="openProcessCasesModal('${r.proses}', '1-7')" title="Klik untuk lihat permohonan 1-7 hari">${r.d1_7}% <span class="text-[10px] text-blue-700 font-normal">(${Math.round((r.d1_7 / 100) * r.permohonan).toLocaleString()})</span></td>
                         <td class="py-3 px-3 text-center bg-amber-50/40 text-amber-900 font-semibold hover:bg-amber-100 transition" onclick="openProcessCasesModal('${r.proses}', '8-14')" title="Klik untuk lihat permohonan 7-14 hari">${r.d8_14}% <span class="text-[10px] text-amber-700 font-normal">(${count7_14})</span></td>
                         <td class="py-3 px-3 text-center bg-rose-50/40 text-rose-900 font-semibold hover:bg-rose-100 transition" onclick="openProcessCasesModal('${r.proses}', 'gt15')" title="Klik untuk lihat permohonan >15 hari">${r.dgt15}% <span class="text-[10px] text-rose-700 font-normal">(${countGt15})</span></td>
                         <td class="py-3 px-3 text-center">
