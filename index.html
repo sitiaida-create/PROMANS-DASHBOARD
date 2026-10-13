@@ -2152,19 +2152,19 @@
                                     const d = new Date(s);
                                     return s && !Number.isNaN(d.getTime()) ? String(d.getFullYear()) : '';
                                 };
-                                // ER dan PR: kiraan permohonan/kelulusan berdasarkan rekod pegawai
-                                // yang mempunyai tempoh pemprosesan. Kelulusan hanya dikira jika status Approved.
+                                // ER dan PR: permohonan dan kelulusan dikira berdasarkan rekod pegawai
+                                // yang mempunyai nama pegawai dan tempoh pemprosesan melebihi 0 hari.
                                 const sourceLabel = String(row.source || '').trim().toLowerCase();
                                 const isERorPR = /(^|\b)(er|pr)(\b|$)/i.test(sourceLabel) ||
                                     /end\s*report|progress\s*report/i.test(sourceLabel);
                                 if (isERorPR) {
                                     if (row.officerName.trim() && row.officerDays > 0) {
                                         g.permohonan++;
+                                        g.kelulusan++;
                                         const y = yearOf(row.officerDate);
-                                        if (y) g.permohonanByYear[y] = (g.permohonanByYear[y] || 0) + 1;
-                                        if (/^approved$/i.test(String(row.status || '').trim())) {
-                                            g.kelulusan++;
-                                            if (y) g.kelulusanByYear[y] = (g.kelulusanByYear[y] || 0) + 1;
+                                        if (y) {
+                                            g.permohonanByYear[y] = (g.permohonanByYear[y] || 0) + 1;
+                                            g.kelulusanByYear[y] = (g.kelulusanByYear[y] || 0) + 1;
                                         }
                                     }
                                 } else {
