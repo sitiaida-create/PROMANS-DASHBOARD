@@ -821,18 +821,20 @@
                     </table>
                 </div>
 
-                <!-- Kad Maklumat Log Tindakan permohonan Terpilih -->
-                <div id="selectedCaseAuditCard" class="hidden p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5 transition">
-                    <div class="flex items-center justify-between border-b border-slate-200 pb-2">
-                        <div class="flex items-center space-x-2">
-                            <i data-lucide="history" class="w-4 h-4 text-utm-maroon"></i>
-                            <h4 class="text-xs font-bold text-slate-900">Kronologi Lengkap Semakan: <span id="auditCardRef" class="font-mono text-utm-maroon"></span></h4>
+                <!-- Pop-up Kronologi: dipaparkan di tengah skrin tanpa menatal halaman -->
+                <div id="selectedCaseAuditCard" class="hidden fixed inset-0 z-[70] bg-slate-900/50 backdrop-blur-sm p-4 flex items-center justify-center" onclick="if(event.target === this) this.classList.add('hidden')">
+                    <div class="w-full max-w-xl max-h-[80vh] overflow-y-auto p-4 rounded-xl bg-white border border-slate-200 shadow-2xl space-y-3">
+                        <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                            <div class="flex items-center space-x-2">
+                                <i data-lucide="history" class="w-4 h-4 text-utm-maroon"></i>
+                                <h4 class="text-xs font-bold text-slate-900">Kronologi Lengkap Semakan: <span id="auditCardRef" class="font-mono text-utm-maroon"></span></h4>
+                            </div>
+                            <button onclick="document.getElementById('selectedCaseAuditCard').classList.add('hidden')" aria-label="Tutup kronologi" class="text-slate-400 hover:text-slate-600 text-xs">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                            </button>
                         </div>
-                        <button onclick="document.getElementById('selectedCaseAuditCard').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 text-xs">
-                            <i data-lucide="x" class="w-4 h-4"></i>
-                        </button>
+                        <ul id="selectedCaseTimeline" class="text-[11px] text-slate-600 space-y-1.5"></ul>
                     </div>
-                    <ul id="selectedCaseTimeline" class="text-[11px] text-slate-600 space-y-1.5"></ul>
                 </div>
             </div>
 
@@ -1412,7 +1414,6 @@
                 timeline.appendChild(li);
             });
 
-            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             lucide.createIcons();
         }
 
