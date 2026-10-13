@@ -1263,7 +1263,7 @@
 
             document.getElementById('modalProcessTitle').innerText = processName;
             // Lajur PPT hanya relevan untuk proses Aktiviti LN / Aktiviti luar negara.
-            const showPptColumn = /aktiviti\\s*(luar\\s*negara|ln)\\b/i.test(String(processName || '').trim());
+            const showPptColumn = /aktiviti\s*(luar\s*negara|ln)\b/i.test(String(processName || '').trim());
             document.querySelectorAll('#processCasesModal .ppt-column').forEach(el => {
                 el.classList.toggle('hidden', !showPptColumn);
             });
