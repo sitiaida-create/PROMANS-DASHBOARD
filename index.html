@@ -639,6 +639,25 @@
                 </div>
             </div>
 
+            <!-- Semua maklumat rekod GRA daripada helaian sumber -->
+            <section class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Semua Maklumat Lantikan GRA</h3>
+                        <p class="text-xs text-slate-500 mt-1">Paparan semua kolum dan rekod daripada Google Sheet sumber GRA.</p>
+                    </div>
+                    <span id="graRecordsCount" class="text-xs font-bold px-2.5 py-1 bg-slate-100 rounded-lg text-slate-700">0 rekod</span>
+                </div>
+                <div class="overflow-auto max-h-[650px]">
+                    <table class="min-w-full text-xs text-left whitespace-nowrap">
+                        <thead id="graRecordsHead" class="bg-slate-50 sticky top-0 z-10 text-slate-700 font-bold"></thead>
+                        <tbody id="graRecordsBody" class="divide-y divide-slate-100">
+                            <tr><td class="p-4 text-slate-500">Memuatkan maklumat GRA daripada Google Sheets...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
             <!-- TAB 4: SEMAKAN PERMOHONAN -->
             <div id="tabContent-semakan" class="hidden space-y-6">
                 <!-- Kad Carian Semakan -->
@@ -1143,6 +1162,7 @@
         let currentJanOgosData = JSON.parse(JSON.stringify(rawJanOgosTemplateData));
         let currentComparisonData = JSON.parse(JSON.stringify(rawComparisonTemplateData));
         let currentGraData = JSON.parse(JSON.stringify(rawGraTemplateData));
+        let currentGraRecords = { headers: [], rows: [] };
 
         let filteredJanOgosData = [...currentJanOgosData];
         let filteredComparisonData = [...currentComparisonData];
@@ -2214,6 +2234,51 @@
                 });
         }
 
+        function renderAllGraRecords() {
+            const head = document.getElementById('graRecordsHead');
+            const body = document.getElementById('graRecordsBody');
+            const count = document.getElementById('graRecordsCount');
+            if (!head || !body || !count) return;
+            const headers = currentGraRecords.headers || [];
+            const rows = currentGraRecords.rows || [];
+            count.textContent = rows.length.toLocaleString() + ' rekod';
+            head.innerHTML = '';
+            body.innerHTML = '';
+            if (!headers.length) {
+                body.innerHTML = '<tr><td class="p-4 text-slate-500">Tiada data GRA tersedia. Semak URL CSV pada tetapan dashboard.</td></tr>';
+                return;
+            }
+            const headerRow = document.createElement('tr');
+            headers.forEach(label => {
+                const th = document.createElement('th');
+                th.className = 'py-3 px-4 border-b border-slate-200';
+                th.textContent = label;
+                headerRow.appendChild(th);
+            });
+            head.appendChild(headerRow);
+            if (!rows.length) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.className = 'p-4 text-slate-500';
+                td.colSpan = headers.length;
+                td.textContent = 'Tiada rekod GRA ditemui.';
+                tr.appendChild(td);
+                body.appendChild(tr);
+                return;
+            }
+            rows.forEach((row, rowIndex) => {
+                const tr = document.createElement('tr');
+                tr.className = rowIndex % 2 ? 'bg-slate-50/70 hover:bg-rose-50/40' : 'bg-white hover:bg-rose-50/40';
+                headers.forEach((_, colIndex) => {
+                    const td = document.createElement('td');
+                    td.className = 'py-2.5 px-4 text-slate-700';
+                    td.textContent = String(row[colIndex] ?? '').trim();
+                    tr.appendChild(td);
+                });
+                body.appendChild(tr);
+            });
+        }
+
         function loadSecondarySheets() {
             const urls = getActiveGSheetUrls();
 
@@ -2255,7 +2320,10 @@
                         if (!csv) return;
                         const rows = parseCSVRows(csv);
                         if (rows.length < 2) return;
-                        const dataRows = rows.slice(1);
+                        const headers = rows[0].map((h, i) => String(h || '').trim() || ('Kolum ' + (i + 1)));
+                        const dataRows = rows.slice(1).filter(row => row.some(cell => String(cell || '').trim() !== ''));
+                        currentGraRecords = { headers, rows: dataRows };
+                        renderAllGraRecords();
 
                         // Kiraan status mengikut Kolum E
                         const counts = {};
