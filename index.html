@@ -1196,21 +1196,23 @@
                         days >= 8 && days <= 14 ? '8-14' :
                         days > 14 ? 'gt15' : 'unknown';
                     const logs = [];
-                    if (row.clerkName || row.clerkDate || row.clerkDays) {
+                    if (row.clerkName || row.clerkDate || row.clerkReceivedDate || row.clerkForwardedDate || row.clerkDays) {
                         logs.push('Kerani: ' + (row.clerkName || 'Tidak dinyatakan') +
-                            (row.clerkDate ? ' | Tarikh mula: ' + row.clerkDate : '') +
+                            ' | Tarikh terima: ' + (row.clerkReceivedDate || row.clerkDate || '—') +
+                            ' | Tarikh dimajukan: ' + (row.clerkForwardedDate || '—') +
                             ' | Tempoh: ' + (Number(row.clerkDays) || 0) + ' hari');
                     }
                     if (row.pptName || row.pptDays) {
                         logs.push('PPT: ' + (row.pptName || 'Tidak dinyatakan') +
                             ' | Tempoh: ' + (Number(row.pptDays) || 0) + ' hari');
                     }
-                    if (row.officerName || row.officerDate || row.officerDays) {
+                    if (row.officerName || row.officerDate || row.officerApprovalDate || row.officerDays) {
                         logs.push('Pegawai: ' + (row.officerName || 'Tidak dinyatakan') +
-                            (row.officerDate ? ' | Tarikh mula: ' + row.officerDate : '') +
+                            ' | Tarikh mula: ' + (row.officerDate || '—') +
+                            ' | Tarikh kelulusan: ' + (row.officerApprovalDate || '—') +
                             ' | Tempoh: ' + (Number(row.officerDays) || 0) + ' hari');
                     }
-                    if (row.status) logs.push('Status dalam data sumber: ' + row.status);
+                    logs.push('Status dalam data sumber: ' + (row.status || 'Tidak dinyatakan'));
                     return {
                         ref: row.ref || 'Rekod ' + (index + 1),
                         vot: '—',
@@ -2073,8 +2075,11 @@
                         const calcRows = dataRows.map(row => ({
                             source: getFirst(row, ['source']),
                             month: getFirst(row, ['month', 'bulan']),
-                            clerkDate: getFirst(row, ['kerani_start_date', 'kerani start date']),
-                            officerDate: getFirst(row, ['pegawai_start_date', 'pegawai start date']),
+                            clerkDate: getFirst(row, ['kerani_start_date', 'kerani start date', 'tarikh_terima', 'tarikh terima']),
+                            clerkReceivedDate: getFirst(row, ['tarikh_terima', 'tarikh terima', 'kerani_received_date', 'kerani received date']),
+                            clerkForwardedDate: getFirst(row, ['tarikh_dimajukan', 'tarikh dimajukan', 'kerani_forwarded_date', 'kerani forwarded date', 'tarikh_hantar_pegawai', 'tarikh hantar pegawai']),
+                            officerDate: getFirst(row, ['pegawai_start_date', 'pegawai start date', 'tarikh_mula_pegawai', 'tarikh mula pegawai']),
+                            officerApprovalDate: getFirst(row, ['tarikh_kelulusan', 'tarikh kelulusan', 'approval_date', 'approval date', 'pegawai_approval_date', 'pegawai approval date']),
                             ref: getFirst(row, ['record_id', 'record id']),
                             clerkName: getFirst(row, ['kerani_name', 'kerani name']),
                             clerkDays: num(row, 'tempoh_kerani', 'tempoh kerani'),
