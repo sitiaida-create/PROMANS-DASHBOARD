@@ -2065,8 +2065,9 @@
                             ref: getFirst(row, ['record_id', 'record id']),
                             clerkName: getFirst(row, ['kerani_name', 'kerani name']),
                             clerkDays: num(row, 'tempoh_kerani', 'tempoh kerani'),
-                            pptName: getFirst(row, ['ppt_name', 'ppt name']),
-                            pptDays: num(row, 'tempoh_ppt', 'tempoh ppt'),
+                            // Pastikan lajur PPT mengambil medan PPT sahaja, bukan medan pegawai.
+                            pptName: getFirst(row, ['ppt_name', 'ppt name', 'nama_ppt', 'nama ppt']),
+                            pptDays: num(row, 'tempoh_ppt', 'tempoh ppt', 'ppt_days', 'ppt days'),
                             officerName: getFirst(row, ['pegawai_name', 'pegawai name']),
                             officerDays: num(row, 'tempoh_pegawai', 'tempoh pegawai'),
                             totalDays: num(row, 'total_processing_days', 'total processing days', 'jumlah hari pemprosesan'),
