@@ -809,7 +809,7 @@
                             <tr>
                                 <th class="py-2.5 px-3">ID Rekod / Proses</th>
                                 <th class="py-2.5 px-3">Kerani / Tempoh</th>
-                                <th class="py-2.5 px-3">PPT / Tempoh</th>
+                                <th class="py-2.5 px-3 ppt-column hidden">PPT / Tempoh</th>
                                 <th class="py-2.5 px-3">Pegawai / Tempoh</th>
                                 <th class="py-2.5 px-3 text-center">Tarikh Mula</th>
                                 <th class="py-2.5 px-3 text-center">Jumlah Hari Proses</th>
@@ -1262,6 +1262,11 @@
             activeModalCasesList = generateCasesForProcess(processName);
 
             document.getElementById('modalProcessTitle').innerText = processName;
+            // Lajur PPT hanya relevan untuk proses Aktiviti LN / Aktiviti luar negara.
+            const showPptColumn = /aktiviti\\s*(luar\\s*negara|ln)\\b/i.test(String(processName || '').trim());
+            document.querySelectorAll('#processCasesModal .ppt-column').forEach(el => {
+                el.classList.toggle('hidden', !showPptColumn);
+            });
             const procMeta = currentJanOgosData.find(p => p.proses === processName);
             const totalCount = activeModalCasesList.length;
             const pctApp = procMeta ? procMeta.pctKelulusan : 0;
@@ -1366,7 +1371,7 @@
                         <div class="text-[10px] text-slate-500">${c.process}</div>
                     </td>
                     <td class="py-2.5 px-3 text-slate-700">${c.clerkName}<div class="text-[10px] text-slate-500">${c.clerkDays} hari</div></td>
-                    <td class="py-2.5 px-3 text-slate-700">${c.pptName}<div class="text-[10px] text-slate-500">${c.pptDays} hari</div></td>
+                    <td class="py-2.5 px-3 text-slate-700 ppt-column hidden">${c.pptName}<div class="text-[10px] text-slate-500">${c.pptDays} hari</div></td>
                     <td class="py-2.5 px-3 text-slate-700">${c.officerName}<div class="text-[10px] text-slate-500">${c.officerDays} hari</div></td>
                     <td class="py-2.5 px-3 text-center text-slate-500 font-mono text-[11px]">${c.dateReceived}</td>
                     <td class="py-2.5 px-3 text-center">${c.daysTaken > 0 ? dayBadge : '—'}</td>
