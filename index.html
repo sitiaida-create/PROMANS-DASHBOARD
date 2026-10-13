@@ -167,6 +167,20 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-3">
+                    <!-- Penapis Tahun -->
+                    <div class="flex items-center space-x-2 min-w-[150px] flex-1 sm:flex-none">
+                        <label for="filterTahun" class="text-xs font-semibold text-slate-600 flex items-center space-x-1">
+                            <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i>
+                            <span>Tahun:</span>
+                        </label>
+                        <select id="filterTahun" onchange="applyGlobalFilters()" class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-utm-maroon flex-1 cursor-pointer">
+                            <option value="all">Semua Tahun</option>
+                            <option value="2026">2026</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                        </select>
+                    </div>
+
                     <!-- Penapis 1: Bulan Semakan -->
                     <div class="flex items-center space-x-2 min-w-[200px] flex-1 sm:flex-none">
                         <label for="filterBulan" class="text-xs font-semibold text-slate-600 flex items-center space-x-1">
@@ -1491,6 +1505,7 @@
 
         function applyGlobalFilters() {
             const bulanVal = document.getElementById('filterBulan').value;
+            const tahunVal = document.getElementById('filterTahun')?.value || 'all';
             const prosesVal = document.getElementById('filterProses').value;
 
             let weight = 1.0;
@@ -1499,8 +1514,10 @@
             }
 
             let janData = currentJanOgosData.map(d => {
-                const p = bulanVal === 'all' ? d.permohonan : Math.round(d.permohonan * weight);
-                const k = bulanVal === 'all' ? d.kelulusan : Math.round(d.kelulusan * weight);
+                const pBase = tahunVal === 'all' ? d.permohonan : (d.permohonanByYear?.[tahunVal] || 0);
+                const kBase = tahunVal === 'all' ? d.kelulusan : (d.kelulusanByYear?.[tahunVal] || 0);
+                const p = bulanVal === 'all' ? pBase : Math.round(pBase * weight);
+                const k = bulanVal === 'all' ? kBase : Math.round(kBase * weight);
                 return {
                     ...d,
                     permohonan: p,
@@ -2109,6 +2126,8 @@
                         const calcRows = dataRows.map(row => ({
                             source: getFirst(row, ['source']),
                             month: getFirst(row, ['month', 'bulan']),
+                            clerkDate: getFirst(row, ['kerani_start_date', 'kerani start date']),
+                            officerDate: getFirst(row, ['pegawai_start_date', 'pegawai start date']),
                             ref: getFirst(row, ['record_id', 'record id']),
                             clerkName: getFirst(row, ['kerani_name', 'kerani name']),
                             clerkDays: num(row, 'tempoh_kerani', 'tempoh kerani'),
@@ -2124,12 +2143,26 @@
                             const grouped = new Map();
                             calcRows.forEach(row => {
                                 const key = row.source || 'Proses tidak dinyatakan';
-                                if (!grouped.has(key)) grouped.set(key, { proses: key, permohonan: 0, kelulusan: 0, d1_7: 0, d8_14: 0, dgt15: 0, totalDays: 0, datedCount: 0 });
+                                if (!grouped.has(key)) grouped.set(key, { proses: key, permohonan: 0, kelulusan: 0, permohonanByYear: {}, kelulusanByYear: {}, d1_7: 0, d8_14: 0, dgt15: 0, totalDays: 0, datedCount: 0 });
                                 const g = grouped.get(key);
-                                // Jumlah permohonan: mesti ada nama kerani dan tempoh semakan yang sah.
-                                if (row.clerkName.trim() && row.clerkDays > 0) g.permohonan++;
-                                // Jumlah kelulusan: mesti ada nama pegawai pelulus dan tempoh semakan yang sah.
-                                if (row.officerName.trim() && row.officerDays > 0) g.kelulusan++;
+                                const yearOf = value => {
+                                    const s = String(value || '').trim();
+                                    const m = s.match(/(?:^|\D)((?:19|20)\d{2})(?:\D|$)/);
+                                    if (m) return m[1];
+                                    const d = new Date(s);
+                                    return s && !Number.isNaN(d.getTime()) ? String(d.getFullYear()) : '';
+                                };
+                                // Kiraan tahun berdasarkan tarikh mula semakan masing-masing.
+                                if (row.clerkName.trim() && row.clerkDays > 0) {
+                                    g.permohonan++;
+                                    const y = yearOf(row.clerkDate);
+                                    if (y) g.permohonanByYear[y] = (g.permohonanByYear[y] || 0) + 1;
+                                }
+                                if (row.officerName.trim() && row.officerDays > 0) {
+                                    g.kelulusan++;
+                                    const y = yearOf(row.officerDate);
+                                    if (y) g.kelulusanByYear[y] = (g.kelulusanByYear[y] || 0) + 1;
+                                }
                                 if (row.totalDays > 0) {
                                     g.totalDays += row.totalDays;
                                     g.datedCount++;
@@ -2145,6 +2178,8 @@
                                     proses: g.proses,
                                     permohonan: g.permohonan,
                                     kelulusan: g.kelulusan,
+                                    permohonanByYear: g.permohonanByYear,
+                                    kelulusanByYear: g.kelulusanByYear,
                                     pctKelulusan: g.permohonan ? Math.min(100, Math.round(g.kelulusan / g.permohonan * 100)) : 0,
                                     d1_7: Math.round(g.d1_7 / timed * 100),
                                     d8_14: Math.round(g.d8_14 / timed * 100),
