@@ -2057,6 +2057,18 @@
                             }
                             return '';
                         };
+                        // Untuk medan PPT, padankan tajuk kolum secara tepat supaya
+                        // ia tidak tersalah ambil medan Pegawai akibat carian separa.
+                        const getExactField = (row, aliases) => {
+                            const wanted = aliases.map(normalizeCSVHeader);
+                            const columnIndex = headers.findIndex(header => wanted.includes(header));
+                            return columnIndex >= 0 ? String(row[columnIndex] ?? '').trim() : '';
+                        };
+                        const getExactNumber = (row, aliases) => {
+                            const raw = getExactField(row, aliases).replace(/[% ,]/g, '');
+                            const value = Number(raw);
+                            return Number.isFinite(value) ? value : 0;
+                        };
 
                         const calcRows = dataRows.map(row => ({
                             source: getFirst(row, ['source']),
@@ -2066,9 +2078,9 @@
                             ref: getFirst(row, ['record_id', 'record id']),
                             clerkName: getFirst(row, ['kerani_name', 'kerani name']),
                             clerkDays: num(row, 'tempoh_kerani', 'tempoh kerani'),
-                            // Pastikan lajur PPT mengambil medan PPT sahaja, bukan medan pegawai.
-                            pptName: getFirst(row, ['ppt_name', 'ppt name', 'nama_ppt', 'nama ppt']),
-                            pptDays: num(row, 'tempoh_ppt', 'tempoh ppt', 'ppt_days', 'ppt days'),
+                            // Padanan tepat untuk nama dan tempoh PPT sahaja.
+                            pptName: getExactField(row, ['ppt_name', 'ppt name', 'nama_ppt', 'nama ppt', 'ppt']),
+                            pptDays: getExactNumber(row, ['tempoh_ppt', 'tempoh ppt', 'ppt_days', 'ppt days']),
                             officerName: getFirst(row, ['pegawai_name', 'pegawai name']),
                             officerDays: num(row, 'tempoh_pegawai', 'tempoh pegawai'),
                             totalDays: num(row, 'total_processing_days', 'total processing days', 'jumlah hari pemprosesan'),
