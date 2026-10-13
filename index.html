@@ -1097,6 +1097,7 @@
         let currentGraData = JSON.parse(JSON.stringify(rawGraTemplateData));
         let currentGraRecords = { headers: [], rows: [] };
         let filteredGraRecords = { headers: [], rows: [] };
+        let selectedGraStatus = null;
         let currentAllApplications = { headers: [], rows: [] };
         let currentApplicationsPage = 1;
         const APPLICATIONS_PAGE_SIZE = 15;
@@ -1659,7 +1660,10 @@
 
             currentGraData.forEach(r => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition";
+                tr.className = "hover:bg-rose-50 transition cursor-pointer";
+                tr.title = "Klik untuk melihat senarai terperinci bagi status " + r.status;
+                tr.style.backgroundColor = selectedGraStatus === r.status ? '#FDF8EA' : '';
+                tr.onclick = () => filterGraDetailsByStatus(r.status);
                 const pctVal = r.pct || (sumGraCases > 0 ? Math.round((r.b12 / sumGraCases) * 100) : 0);
 
                 tr.innerHTML = `
@@ -2213,6 +2217,25 @@
             updateCharts();
         }
 
+        function filterGraDetailsByStatus(status) {
+            // Klik status yang sama sekali lagi untuk kembali memaparkan semua status.
+            selectedGraStatus = selectedGraStatus === status ? null : status;
+            currentGraPage = 1;
+            renderAllGraRecords();
+            const note = document.getElementById('graFilterNote');
+            const baseCount = (filteredGraRecords.rows || []).length;
+            const shownCount = selectedGraStatus
+                ? (filteredGraRecords.rows || []).filter(row => {
+                    const headers = filteredGraRecords.headers || [];
+                    const idx = headers.findIndex(h => /^(status|applicationstatus|verificationstatus|statuspermohonan)$/.test(normalizeCSVHeader(h)));
+                    return String(row[idx >= 0 ? idx : 4] || '').trim() === selectedGraStatus;
+                }).length
+                : baseCount;
+            if (note) note.textContent = selectedGraStatus
+                ? shownCount.toLocaleString() + ' rekod dipaparkan untuk status: ' + selectedGraStatus + '. Klik status yang sama untuk paparkan semua status.'
+                : baseCount.toLocaleString() + ' rekod GRA mengikut penapis bulan/tahun dipilih.';
+        }
+
         function changeGraRecordsPage(direction) {
             const totalPages = Math.max(1, Math.ceil((filteredGraRecords.rows || []).length / GRA_PAGE_SIZE));
             currentGraPage = Math.min(totalPages, Math.max(1, currentGraPage + direction));
@@ -2225,7 +2248,11 @@
             const count = document.getElementById('graRecordsCount');
             if (!head || !body || !count) return;
             const headers = filteredGraRecords.headers || currentGraRecords.headers || [];
-            const rows = filteredGraRecords.rows || currentGraRecords.rows || [];
+            const allRows = filteredGraRecords.rows || currentGraRecords.rows || [];
+            const statusIndex = headers.findIndex(h => /^(status|applicationstatus|verificationstatus|statuspermohonan)$/.test(normalizeCSVHeader(h)));
+            const rows = selectedGraStatus
+                ? allRows.filter(row => String(row[statusIndex >= 0 ? statusIndex : 4] || '').trim() === selectedGraStatus)
+                : allRows;
             const visibleColumns = headers
                 .map((label, index) => ({ label, index, normalized: String(label || '').trim().toLowerCase().replace(/[_-]+/g, ' ') }))
                 .filter(col => !/termination|action|\bic\s*(?:no|number|num|#)\b|\bno\.?\s*ic\b|identity\s*card/.test(col.normalized));
