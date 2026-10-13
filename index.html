@@ -656,6 +656,14 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <span id="graRecordsPageInfo" class="text-xs text-slate-500">Paparan 0–0 daripada 0 rekod</span>
+                    <div class="flex items-center gap-2">
+                        <button id="graRecordsPrev" type="button" onclick="changeGraRecordsPage(-1)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">Sebelumnya</button>
+                        <span id="graRecordsPageNumber" class="text-xs font-semibold text-slate-600 min-w-[70px] text-center">Halaman 1/1</span>
+                        <button id="graRecordsNext" type="button" onclick="changeGraRecordsPage(1)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">Seterusnya</button>
+                    </div>
+                </div>
             </section>
 
             <!-- TAB 4: SEMAKAN PERMOHONAN -->
@@ -1163,6 +1171,8 @@
         let currentComparisonData = JSON.parse(JSON.stringify(rawComparisonTemplateData));
         let currentGraData = JSON.parse(JSON.stringify(rawGraTemplateData));
         let currentGraRecords = { headers: [], rows: [] };
+        let currentGraPage = 1;
+        const GRA_PAGE_SIZE = 15;
 
         let filteredJanOgosData = [...currentJanOgosData];
         let filteredComparisonData = [...currentComparisonData];
@@ -2234,6 +2244,12 @@
                 });
         }
 
+        function changeGraRecordsPage(direction) {
+            const totalPages = Math.max(1, Math.ceil((currentGraRecords.rows || []).length / GRA_PAGE_SIZE));
+            currentGraPage = Math.min(totalPages, Math.max(1, currentGraPage + direction));
+            renderAllGraRecords();
+        }
+
         function renderAllGraRecords() {
             const head = document.getElementById('graRecordsHead');
             const body = document.getElementById('graRecordsBody');
@@ -2241,46 +2257,58 @@
             if (!head || !body || !count) return;
             const headers = currentGraRecords.headers || [];
             const rows = currentGraRecords.rows || [];
-            // Sembunyikan lajur sensitif/tidak diperlukan daripada paparan jadual sahaja.
             const visibleColumns = headers
                 .map((label, index) => ({ label, index, normalized: String(label || '').trim().toLowerCase().replace(/[_-]+/g, ' ') }))
                 .filter(col => !/termination|action|\bic\s*(?:no|number|num|#)\b|\bno\.?\s*ic\b|identity\s*card/.test(col.normalized));
+            const totalPages = Math.max(1, Math.ceil(rows.length / GRA_PAGE_SIZE));
+            currentGraPage = Math.min(totalPages, Math.max(1, currentGraPage));
+            const startIndex = rows.length ? (currentGraPage - 1) * GRA_PAGE_SIZE : 0;
+            const pageRows = rows.slice(startIndex, startIndex + GRA_PAGE_SIZE);
             count.textContent = rows.length.toLocaleString() + ' rekod';
             head.innerHTML = '';
             body.innerHTML = '';
             if (!headers.length) {
                 body.innerHTML = '<tr><td class="p-4 text-slate-500">Tiada data GRA tersedia. Semak URL CSV pada tetapan dashboard.</td></tr>';
-                return;
-            }
-            const headerRow = document.createElement('tr');
-            visibleColumns.forEach(col => {
-                const th = document.createElement('th');
-                th.className = 'py-3 px-4 border-b border-slate-200';
-                th.textContent = col.label;
-                headerRow.appendChild(th);
-            });
-            head.appendChild(headerRow);
-            if (!rows.length) {
-                const tr = document.createElement('tr');
-                const td = document.createElement('td');
-                td.className = 'p-4 text-slate-500';
-                td.colSpan = Math.max(visibleColumns.length, 1);
-                td.textContent = 'Tiada rekod GRA ditemui.';
-                tr.appendChild(td);
-                body.appendChild(tr);
-                return;
-            }
-            rows.forEach((row, rowIndex) => {
-                const tr = document.createElement('tr');
-                tr.className = rowIndex % 2 ? 'bg-slate-50/70 hover:bg-rose-50/40' : 'bg-white hover:bg-rose-50/40';
+            } else {
+                const headerRow = document.createElement('tr');
                 visibleColumns.forEach(col => {
-                    const td = document.createElement('td');
-                    td.className = 'py-2.5 px-4 text-slate-700';
-                    td.textContent = String(row[col.index] ?? '').trim();
-                    tr.appendChild(td);
+                    const th = document.createElement('th');
+                    th.className = 'py-3 px-4 border-b border-slate-200';
+                    th.textContent = col.label;
+                    headerRow.appendChild(th);
                 });
-                body.appendChild(tr);
-            });
+                head.appendChild(headerRow);
+                if (!rows.length) {
+                    const tr = document.createElement('tr');
+                    const td = document.createElement('td');
+                    td.className = 'p-4 text-slate-500';
+                    td.colSpan = Math.max(visibleColumns.length, 1);
+                    td.textContent = 'Tiada rekod GRA ditemui.';
+                    tr.appendChild(td);
+                    body.appendChild(tr);
+                } else {
+                    pageRows.forEach((row, pageIndex) => {
+                        const tr = document.createElement('tr');
+                        const rowIndex = startIndex + pageIndex;
+                        tr.className = rowIndex % 2 ? 'bg-slate-50/70 hover:bg-rose-50/40' : 'bg-white hover:bg-rose-50/40';
+                        visibleColumns.forEach(col => {
+                            const td = document.createElement('td');
+                            td.className = 'py-2.5 px-4 text-slate-700';
+                            td.textContent = String(row[col.index] ?? '').trim();
+                            tr.appendChild(td);
+                        });
+                        body.appendChild(tr);
+                    });
+                }
+            }
+            const pageInfo = document.getElementById('graRecordsPageInfo');
+            const pageNumber = document.getElementById('graRecordsPageNumber');
+            const prev = document.getElementById('graRecordsPrev');
+            const next = document.getElementById('graRecordsNext');
+            if (pageInfo) pageInfo.textContent = rows.length ? `Paparan ${startIndex + 1}–${Math.min(startIndex + GRA_PAGE_SIZE, rows.length)} daripada ${rows.length.toLocaleString()} rekod` : 'Paparan 0–0 daripada 0 rekod';
+            if (pageNumber) pageNumber.textContent = `Halaman ${currentGraPage}/${totalPages}`;
+            if (prev) prev.disabled = currentGraPage <= 1;
+            if (next) next.disabled = currentGraPage >= totalPages;
         }
         function loadSecondarySheets() {
             const urls = getActiveGSheetUrls();
