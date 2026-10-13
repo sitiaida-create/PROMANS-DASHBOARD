@@ -229,6 +229,17 @@
                 </div>
             </div>
 
+            <!-- RUMUSAN ER / PR / EXTENSION -->
+            <section id="reportSummarySection" class="space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2"><div><h2 class="text-base font-extrabold text-slate-900">Rumusan Permohonan ER, PR &amp; Extension</h2><p class="text-xs text-slate-500 mt-1">Kiraan berdasarkan rekod Google Sheets, nama staf, tempoh semakan dan status kelulusan.</p></div><span id="reportSummaryFilterNote" class="text-xs text-slate-500">Mengikut penapis dashboard</span></div>
+                <div id="reportSummaryCards" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5"><p class="text-xs font-bold text-slate-500">ER · END REPORT</p><div class="mt-3 grid grid-cols-2 gap-3"><div><p class="text-xs text-slate-500">Permohonan</p><p id="reportERApps" class="text-2xl font-extrabold text-slate-900">0</p></div><div><p class="text-xs text-slate-500">Kelulusan</p><p id="reportERApproved" class="text-2xl font-extrabold text-emerald-700">0</p></div></div></div>
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5"><p class="text-xs font-bold text-slate-500">PR · PROGRESS REPORT</p><div class="mt-3 grid grid-cols-2 gap-3"><div><p class="text-xs text-slate-500">Permohonan</p><p id="reportPRApps" class="text-2xl font-extrabold text-slate-900">0</p></div><div><p class="text-xs text-slate-500">Kelulusan</p><p id="reportPRApproved" class="text-2xl font-extrabold text-emerald-700">0</p></div></div></div>
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5"><p class="text-xs font-bold text-slate-500">EXTENSION · PERLANJUTAN TEMPOH</p><div class="mt-3 grid grid-cols-2 gap-3"><div><p class="text-xs text-slate-500">Permohonan</p><p id="reportEXApps" class="text-2xl font-extrabold text-slate-900">0</p></div><div><p class="text-xs text-slate-500">Kelulusan</p><p id="reportEXApproved" class="text-2xl font-extrabold text-emerald-700">0</p></div></div></div>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden"><div class="p-4 border-b border-slate-100"><h3 class="text-sm font-bold text-slate-900">Jadual Terperinci ER, PR &amp; Extension</h3><p class="text-xs text-slate-500 mt-1">Kelulusan memerlukan nama pegawai, tempoh pegawai &gt; 0 hari dan status disahkan diluluskan.</p></div><div class="overflow-x-auto"><table class="w-full text-sm"><thead class="bg-slate-50 text-xs uppercase text-slate-500"><tr><th class="text-left px-4 py-3">Jenis</th><th class="text-right px-4 py-3">Jumlah Permohonan</th><th class="text-right px-4 py-3">Jumlah Kelulusan</th><th class="text-right px-4 py-3">Belum Diluluskan / Status Lain</th><th class="text-right px-4 py-3">% Kelulusan</th></tr></thead><tbody id="reportSummaryTableBody" class="divide-y divide-slate-100"><tr><td colspan="5" class="px-4 py-5 text-center text-slate-400">Menunggu data Google Sheets…</td></tr></tbody><tfoot id="reportSummaryTableFoot" class="bg-slate-50 font-bold"></tfoot></table></div></div>
+            </section>
+
             <!-- TAB 1: KECEKAPAN PROSES & SEMAKAN -->
             <div id="tabContent-kecekapan" class="space-y-6">
                 <!-- 4 Kad Metrik Utama (KPI Cards) -->
@@ -1138,6 +1149,7 @@
             5: "Mei 2026", 6: "Jun 2026", 7: "Julai 2026", 8: "Ogos 2026 (sehingga 26-08-2026)"
         };
 
+        let currentReportRecords = [];
         let currentJanOgosData = JSON.parse(JSON.stringify(rawJanOgosTemplateData));
         let currentComparisonData = JSON.parse(JSON.stringify(rawComparisonTemplateData));
         let currentGraData = JSON.parse(JSON.stringify(rawGraTemplateData));
@@ -1568,6 +1580,7 @@
 
             populateTables();
             updateCharts();
+            renderReportSummary();
         }
 
         function initCharts() {
@@ -2086,6 +2099,67 @@
             return String(value ?? '').trim().toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g, '');
         }
 
+
+        function classifyReportType(source) {
+            const n = String(source || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            if (/extension|perlanjutan|lanjut tempoh|lanjutan tempoh/.test(n)) return 'Extension';
+            if (/progress report|progressreport|\bpr\b/.test(n)) return 'PR';
+            if (/end report|endreport|\ber\b/.test(n)) return 'ER';
+            return '';
+        }
+
+        function parseRecordDate(value) {
+            const s = String(value || '').trim();
+            if (!s) return null;
+            const m = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
+            if (m) return new Date(Number(m[3]), Number(m[2])-1, Number(m[1]));
+            const d = new Date(s);
+            return Number.isNaN(d.getTime()) ? null : d;
+        }
+
+        function isApprovedStatus(status) {
+            const n = String(status || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, '');
+            return ['diluluskan','lulus','approved','approvalgranted','telahdiluluskan'].includes(n);
+        }
+
+        function renderReportSummary() {
+            const monthVal = document.getElementById('filterBulan')?.value || 'all';
+            const yearVal = document.getElementById('filterTahun')?.value || 'all';
+            const processVal = document.getElementById('filterProses')?.value || 'all';
+            const types = ['ER','PR','Extension'];
+            const summary = Object.fromEntries(types.map(type => [type,{apps:0,approved:0}]));
+            const seenApps = new Set(), seenApprovals = new Set();
+            const processMatches = source => processVal === 'all' || String(source || '').toLowerCase() === processVal.toLowerCase() || String(source || '').toLowerCase().includes(processVal.toLowerCase());
+            currentReportRecords.forEach(row => {
+                const type = classifyReportType(row.source);
+                if (!type || !summary[type] || !processMatches(row.source)) return;
+                const appDate = parseRecordDate(row.clerkDate);
+                const approvalDate = parseRecordDate(row.officerDate);
+                const dateMatches = date => !!date && (yearVal === 'all' || String(date.getFullYear()) === yearVal) && (monthVal === 'all' || String(date.getMonth()+1) === monthVal);
+                const uniqueKey = String(row.ref || [row.source,row.clerkName,row.clerkDate,row.officerName,row.officerDate].join('|')).trim();
+                if (row.clerkName && row.clerkDays > 0 && dateMatches(appDate) && !seenApps.has(type+'|'+uniqueKey)) {
+                    summary[type].apps++; seenApps.add(type+'|'+uniqueKey);
+                }
+                if (row.officerName && row.officerDays > 0 && isApprovedStatus(row.status) && dateMatches(approvalDate) && !seenApprovals.has(type+'|'+uniqueKey)) {
+                    summary[type].approved++; seenApprovals.add(type+'|'+uniqueKey);
+                }
+            });
+            const ids = {ER:['reportERApps','reportERApproved'],PR:['reportPRApps','reportPRApproved'],Extension:['reportEXApps','reportEXApproved']};
+            types.forEach(type => {
+                document.getElementById(ids[type][0]).textContent = summary[type].apps.toLocaleString();
+                document.getElementById(ids[type][1]).textContent = summary[type].approved.toLocaleString();
+            });
+            document.getElementById('reportSummaryTableBody').innerHTML = types.map(type => {
+                const x=summary[type], pending=Math.max(0,x.apps-x.approved), pct=x.apps?((x.approved/x.apps)*100).toFixed(1):'0.0';
+                const label=type==='ER'?'ER · End Report':type==='PR'?'PR · Progress Report':'Extension · Perlanjutan Tempoh';
+                return '<tr><td class="px-4 py-3 font-semibold text-slate-800">'+label+'</td><td class="px-4 py-3 text-right font-mono">'+x.apps.toLocaleString()+'</td><td class="px-4 py-3 text-right font-mono font-bold text-emerald-700">'+x.approved.toLocaleString()+'</td><td class="px-4 py-3 text-right font-mono">'+pending.toLocaleString()+'</td><td class="px-4 py-3 text-right font-semibold">'+pct+'%</td></tr>';
+            }).join('');
+            const total=types.reduce((a,t)=>({apps:a.apps+summary[t].apps,approved:a.approved+summary[t].approved}),{apps:0,approved:0});
+            document.getElementById('reportSummaryTableFoot').innerHTML = '<tr><td class="px-4 py-3">JUMLAH</td><td class="px-4 py-3 text-right">'+total.apps.toLocaleString()+'</td><td class="px-4 py-3 text-right text-emerald-700">'+total.approved.toLocaleString()+'</td><td class="px-4 py-3 text-right">'+Math.max(0,total.apps-total.approved).toLocaleString()+'</td><td class="px-4 py-3 text-right">'+(total.apps?((total.approved/total.apps)*100).toFixed(1):'0.0')+'%</td></tr>';
+            const monthLabel = monthVal === 'all' ? 'Semua bulan' : (document.getElementById('filterBulan')?.selectedOptions[0]?.textContent || monthVal);
+            document.getElementById('reportSummaryFilterNote').textContent = (yearVal === 'all' ? 'Semua tahun' : yearVal)+' · '+monthLabel+' · '+(processVal === 'all' ? 'Semua proses' : processVal);
+        }
+
         function loadGoogleSheetsCSV(showMessage = false) {
             const refreshButton = document.getElementById('btnSyncGoogleSheets');
             if (refreshButton) refreshButton.disabled = true;
@@ -2138,6 +2212,8 @@
                             totalDays: num(row, 'total_processing_days', 'total processing days', 'jumlah hari pemprosesan'),
                             status: getFirst(row, ['status']) || 'Draft'
                         })).filter(row => row.source || row.ref);
+
+                        currentReportRecords = calcRows;
 
                         if (calcRows.length) {
                             const grouped = new Map();
