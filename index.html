@@ -1122,9 +1122,43 @@
         let activeModalCasesList = [];
         let rawProcessingRecords = [];
 
+        function getGlobalFilterMatchedProcessingRecords(processName = '') {
+            const normalize = value => String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+            const yearFilter = document.getElementById('filterTahun')?.value || 'all';
+            const monthFilter = document.getElementById('filterBulan')?.value || 'all';
+            const processFilter = document.getElementById('filterProses')?.value || 'all';
+            const wantedProcess = processName || processFilter;
+
+            const getDateParts = value => {
+                const raw = String(value || '').trim();
+                if (!raw) return { year: '', month: '' };
+                let match = raw.match(/(?:^|\D)((?:19|20)\d{2})[-/.](0?[1-9]|1[0-2])(?:[-/.]\d{1,2})?(?:\D|$)/);
+                if (match) return { year: match[1], month: String(Number(match[2])) };
+                match = raw.match(/(?:^|\D)(0?[1-9]|1[0-2])[-/.]((?:19|20)\d{2})(?:\D|$)/);
+                if (match) return { year: match[2], month: String(Number(match[1])) };
+                const parsed = new Date(raw);
+                if (!Number.isNaN(parsed.getTime()) && /\d/.test(raw)) {
+                    return { year: String(parsed.getFullYear()), month: String(parsed.getMonth() + 1) };
+                }
+                const monthNames = { jan:1, january:1, januari:1, feb:2, february:2, februari:2, mar:3, march:3, mac:3, apr:4, april:4, may:5, mei:5, jun:6, june:6, jun:6, jul:7, july:7, julai:7, aug:8, august:8, ogos:8, sep:9, september:9, sept:9, oct:10, october:10, oktober:10, nov:11, november:11, dec:12, december:12, disember:12 };
+                const nameMatch = raw.toLowerCase().match(/\b(january|januari|february|februari|march|mac|april|may|mei|june|jun|july|julai|august|ogos|september|sept|october|oktober|november|december|disember|jan|feb|mar|apr|jul|aug|sep|oct|nov|dec)\b/);
+                const yearMatch = raw.match(/\b((?:19|20)\d{2})\b/);
+                return { year: yearMatch ? yearMatch[1] : '', month: nameMatch ? String(monthNames[nameMatch[1]]) : '' };
+            };
+
+            return rawProcessingRecords.filter(row => {
+                if (wantedProcess && wantedProcess !== 'all' && normalize(row.source) !== normalize(wantedProcess)) return false;
+                const dateValues = [row.month, row.officerDate, row.officerApprovalDate, row.clerkDate, row.clerkReceivedDate, row.clerkForwardedDate].filter(Boolean);
+                const parts = dateValues.map(getDateParts);
+                if (yearFilter !== 'all' && !parts.some(p => p.year === yearFilter)) return false;
+                if (monthFilter !== 'all' && !parts.some(p => p.month === String(Number(monthFilter)))) return false;
+                return true;
+            });
+        }
+
         function generateCasesForProcess(processName) {
             const normalize = value => String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
-            return rawProcessingRecords
+            return getGlobalFilterMatchedProcessingRecords(processName)
                 .filter(row => normalize(row.source) === normalize(processName))
                 .map((row, index) => {
                     const days = Number(row.totalDays) || 0;
