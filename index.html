@@ -1150,8 +1150,13 @@
                 if (wantedProcess && wantedProcess !== 'all' && normalize(row.source) !== normalize(wantedProcess)) return false;
                 const dateValues = [row.month, row.officerDate, row.officerApprovalDate, row.clerkDate, row.clerkReceivedDate, row.clerkForwardedDate].filter(Boolean);
                 const parts = dateValues.map(getDateParts);
-                if (yearFilter !== 'all' && !parts.some(p => p.year === yearFilter)) return false;
-                if (monthFilter !== 'all' && !parts.some(p => p.month === String(Number(monthFilter)))) return false;
+                if (yearFilter !== 'all' && monthFilter !== 'all') {
+                    if (!parts.some(p => p.year === yearFilter && p.month === String(Number(monthFilter)))) return false;
+                } else if (yearFilter !== 'all') {
+                    if (!parts.some(p => p.year === yearFilter)) return false;
+                } else if (monthFilter !== 'all') {
+                    if (!parts.some(p => p.month === String(Number(monthFilter)))) return false;
+                }
                 return true;
             });
         }
