@@ -2417,9 +2417,20 @@
             const body = document.getElementById('allApplicationsBody');
             const count = document.getElementById('allApplicationsCount');
             if (!head || !body || !count) return;
+
             const headers = currentAllApplications.headers || [];
             const allRows = currentAllApplications.rows || [];
+            const normalizeHeader = value => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const wantedColumns = ['source', 'raw', 'row', 'month', 'recordid', 'totalprocessingdays', 'status'];
+            const visibleColumns = wantedColumns
+                .map(wanted => {
+                    const index = headers.findIndex(label => normalizeHeader(label) === wanted);
+                    return index >= 0 ? { key: wanted, label: headers[index], index } : null;
+                })
+                .filter(Boolean);
+
             const query = String(applicationSearchQuery || '').trim().toLowerCase();
+            // Carian masih meliputi semua medan sumber walaupun hanya tujuh lajur dipaparkan.
             const rows = query
                 ? allRows.filter(row => row.some(cell => String(cell ?? '').toLowerCase().includes(query)))
                 : allRows;
@@ -2427,25 +2438,28 @@
             currentApplicationsPage = Math.min(totalPages, Math.max(1, currentApplicationsPage));
             const startIndex = rows.length ? (currentApplicationsPage - 1) * APPLICATIONS_PAGE_SIZE : 0;
             const pageRows = rows.slice(startIndex, startIndex + APPLICATIONS_PAGE_SIZE);
+
             count.textContent = rows.length.toLocaleString() + ' rekod';
             head.innerHTML = '';
             body.innerHTML = '';
-            if (!headers.length) {
-                body.innerHTML = '<tr><td class="p-4 text-slate-500">Tiada data permohonan tersedia. Semak URL CSV pada tetapan dashboard.</td></tr>';
+
+            if (!headers.length || !visibleColumns.length) {
+                body.innerHTML = '<tr><td class="p-4 text-slate-500">Lajur yang diminta tidak ditemui dalam data sumber. Semak tajuk CSV.</td></tr>';
             } else {
                 const headerRow = document.createElement('tr');
-                headers.forEach(label => {
+                visibleColumns.forEach(col => {
                     const th = document.createElement('th');
                     th.className = 'py-3 px-4 border-b border-slate-200';
-                    th.textContent = label;
+                    th.textContent = col.label;
                     headerRow.appendChild(th);
                 });
                 head.appendChild(headerRow);
+
                 if (!rows.length) {
                     const tr = document.createElement('tr');
                     const td = document.createElement('td');
                     td.className = 'p-4 text-slate-500';
-                    td.colSpan = headers.length;
+                    td.colSpan = visibleColumns.length;
                     td.textContent = 'Tiada rekod permohonan ditemui.';
                     tr.appendChild(td);
                     body.appendChild(tr);
@@ -2453,11 +2467,13 @@
                     pageRows.forEach((row, pageIndex) => {
                         const tr = document.createElement('tr');
                         tr.className = (startIndex + pageIndex) % 2 ? 'bg-slate-50/70 hover:bg-rose-50/40' : 'bg-white hover:bg-rose-50/40';
-                        headers.forEach((headerLabel, colIndex) => {
+
+                        visibleColumns.forEach(col => {
                             const td = document.createElement('td');
                             td.className = 'py-2.5 px-4 text-slate-700';
-                            const cellValue = String(row[colIndex] ?? '').trim();
-                            if (/^record\s*_?\s*id$/i.test(String(headerLabel || '').trim()) && cellValue) {
+                            const cellValue = String(row[col.index] ?? '').trim();
+
+                            if (col.key === 'recordid' && cellValue) {
                                 const link = document.createElement('button');
                                 link.type = 'button';
                                 link.textContent = cellValue;
@@ -2482,6 +2498,7 @@
                     });
                 }
             }
+
             const pageInfo = document.getElementById('allApplicationsPageInfo');
             const prev = document.getElementById('allApplicationsPrev');
             const next = document.getElementById('allApplicationsNext');
