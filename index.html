@@ -890,7 +890,7 @@
                                 <th class="py-2.5 px-3">Kerani / Tempoh</th>
                                 <th class="py-2.5 px-3 ppt-column hidden">PPT / Tempoh</th>
                                 <th class="py-2.5 px-3">Pegawai / Tempoh</th>
-                                <th class="py-2.5 px-3 text-center">Tarikh Mula</th>
+                                <th class="py-2.5 px-3 text-center">Bulan Permohonan</th>
                                 <th class="py-2.5 px-3 text-center">Jumlah Hari Proses</th>
                                 <th class="py-2.5 px-3 text-center">Status</th>
                                 <th class="py-2.5 px-3 text-center">Tindakan</th>
@@ -1242,6 +1242,7 @@
                         applicant: '—',
                         faculty: '—',
                         dateReceived: row.clerkDate || row.officerDate || '—',
+                        month: row.month || '—',
                         daysTaken: days,
                         periodCategory,
                         currentStage: row.officerName ? 'Peringkat pegawai' : row.clerkName ? 'Peringkat kerani' : 'Peringkat tidak dinyatakan',
@@ -1374,7 +1375,7 @@
                     <td class="py-2.5 px-3 text-slate-700">${c.clerkName}<div class="text-[10px] text-slate-500">${c.clerkDays} hari</div></td>
                     <td class="py-2.5 px-3 text-slate-700 ppt-column hidden">${c.pptName}<div class="text-[10px] text-slate-500">${c.pptDays} hari</div></td>
                     <td class="py-2.5 px-3 text-slate-700">${c.officerName}<div class="text-[10px] text-slate-500">${c.officerDays} hari</div></td>
-                    <td class="py-2.5 px-3 text-center text-slate-500 font-mono text-[11px]">${c.dateReceived}</td>
+                    <td class="py-2.5 px-3 text-center text-slate-500 font-mono text-[11px]">${c.month || '—'}</td>
                     <td class="py-2.5 px-3 text-center">${c.daysTaken > 0 ? dayBadge : '—'}</td>
                     <td class="py-2.5 px-3 text-center">
                         <span class="px-2 py-0.5 rounded-full text-2xs font-bold uppercase border ${statusColor}">${c.status}</span>
@@ -1417,9 +1418,9 @@
         }
 
         function exportModalCasesCSV() {
-            let csv = "No Rujukan,Proses,Kerani,Tempoh Kerani,Pegawai,Tempoh Pegawai,Tarikh Mula,Jumlah Hari,Status\n";
+            let csv = "No Rujukan,Proses,Kerani,Tempoh Kerani,Pegawai,Tempoh Pegawai,Bulan Permohonan,Jumlah Hari,Status\n";
             activeModalCasesList.forEach(c => {
-                csv += `"${c.ref}","${c.process}","${c.clerkName}",${c.clerkDays},"${c.officerName}",${c.officerDays},"${c.dateReceived}",${c.daysTaken},"${c.status}"\n`;
+                csv += `"${c.ref}","${c.process}","${c.clerkName}",${c.clerkDays},"${c.officerName}",${c.officerDays},"${c.month || '—'}",${c.daysTaken},"${c.status}"\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
