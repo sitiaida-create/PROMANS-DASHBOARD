@@ -414,11 +414,12 @@
                             </div>
                             <p class="text-xs text-slate-400 mt-0.5">Data bersumberkan Helaian 1 templat Excel. Tekan mana-mana baris untuk melihat rekod audit fail.</p>
                         </div>
-                        <div class="w-full sm:w-64">
-                            <label for="durationDisplayMode" class="text-xs font-semibold text-slate-600 sr-only">Paparan tempoh</label>
-                            <select id="durationDisplayMode" onchange="populateTables()" class="w-full text-xs bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-utm-maroon">
-                                <option value="permohonan">Paparan tempoh: Permohonan (tempoh kerani)</option>
-                                <option value="kelulusan">Paparan tempoh: Kelulusan (tempoh pegawai)</option>
+                        <div id="durationModeToggleWrap" class="inline-flex bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs" role="group" aria-label="Paparan tempoh">
+                            <button type="button" id="durationModePermohonanBtn" class="px-3 py-1 font-semibold rounded-md bg-white text-slate-900 shadow-sm" onclick="setDurationDisplayMode('permohonan')">Permohonan</button>
+                            <button type="button" id="durationModeKelulusanBtn" class="px-3 py-1 font-semibold rounded-md text-slate-500 hover:text-slate-900" onclick="setDurationDisplayMode('kelulusan')">Kelulusan</button>
+                            <select id="durationDisplayMode" class="hidden" aria-hidden="true" tabindex="-1">
+                                <option value="permohonan" selected>Permohonan</option>
+                                <option value="kelulusan">Kelulusan</option>
                             </select>
                         </div>
                     </div>
@@ -1720,6 +1721,22 @@
                     }
                 }
             });
+        }
+
+        function setDurationDisplayMode(mode) {
+            const select = document.getElementById('durationDisplayMode');
+            if (!select) return;
+            select.value = mode === 'kelulusan' ? 'kelulusan' : 'permohonan';
+            const isApproval = select.value === 'kelulusan';
+            const activeClasses = 'px-3 py-1 font-semibold rounded-md bg-white text-slate-900 shadow-sm';
+            const inactiveClasses = 'px-3 py-1 font-semibold rounded-md text-slate-500 hover:text-slate-900';
+            const permohonanBtn = document.getElementById('durationModePermohonanBtn');
+            const kelulusanBtn = document.getElementById('durationModeKelulusanBtn');
+            if (permohonanBtn) permohonanBtn.className = isApproval ? inactiveClasses : activeClasses;
+            if (kelulusanBtn) kelulusanBtn.className = isApproval ? activeClasses : inactiveClasses;
+            if (permohonanBtn) permohonanBtn.setAttribute('aria-pressed', String(!isApproval));
+            if (kelulusanBtn) kelulusanBtn.setAttribute('aria-pressed', String(isApproval));
+            populateTables();
         }
 
         function populateTables() {
