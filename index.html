@@ -2453,10 +2453,29 @@
                     pageRows.forEach((row, pageIndex) => {
                         const tr = document.createElement('tr');
                         tr.className = (startIndex + pageIndex) % 2 ? 'bg-slate-50/70 hover:bg-rose-50/40' : 'bg-white hover:bg-rose-50/40';
-                        headers.forEach((_, colIndex) => {
+                        headers.forEach((headerLabel, colIndex) => {
                             const td = document.createElement('td');
                             td.className = 'py-2.5 px-4 text-slate-700';
-                            td.textContent = String(row[colIndex] ?? '').trim();
+                            const cellValue = String(row[colIndex] ?? '').trim();
+                            if (/^record\\s*_?\\s*id$/i.test(String(headerLabel || '').trim()) && cellValue) {
+                                const link = document.createElement('button');
+                                link.type = 'button';
+                                link.textContent = cellValue;
+                                link.className = 'font-semibold text-utm-maroon underline decoration-dotted underline-offset-2 hover:text-utm-dark focus:outline-none focus:ring-2 focus:ring-utm-maroon rounded';
+                                link.title = 'Klik untuk melihat maklumat permohonan';
+                                link.addEventListener('click', () => {
+                                    const input = document.getElementById('trackingInput');
+                                    if (input) input.value = cellValue;
+                                    performTrackingSearch();
+                                    const resultBox = document.getElementById('trackingResultBox');
+                                    if (resultBox && !resultBox.classList.contains('hidden')) {
+                                        resultBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                    }
+                                });
+                                td.appendChild(link);
+                            } else {
+                                td.textContent = cellValue;
+                            }
                             tr.appendChild(td);
                         });
                         body.appendChild(tr);
