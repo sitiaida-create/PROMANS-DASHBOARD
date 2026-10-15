@@ -102,6 +102,13 @@
                 </div>
 
                 <div class="flex items-center space-x-2 shrink-0">
+                    <!-- Tarikh kemas kini daripada Google Sheets CSV -->
+                    <div id="dataUpdateDateWrap" class="inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-slate-500 whitespace-nowrap" title="Tarikh dikemas kini daripada Google Sheets">
+                        <i data-lucide="calendar-clock" class="w-3.5 h-3.5 text-slate-400"></i>
+                        <span>Tarikh kemas kini:</span>
+                        <span id="dataUpdateDate" class="font-semibold text-slate-700">Memuatkan...</span>
+                    </div>
+
                     <!-- Butang Refresh (Statik & Tidak Bergerak) -->
                     <button onclick="loadGoogleSheetsCSV(true)" id="btnSyncGoogleSheets" class="inline-flex items-center space-x-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 px-3.5 py-2 rounded-xl text-xs font-semibold shadow-2xs transition" title="Refresh data daripada Google Sheets">
                         <i data-lucide="refresh-cw" id="iconSyncLive" class="w-3.5 h-3.5 text-slate-600"></i>
@@ -1018,6 +1025,7 @@
         const DEFAULT_URL_KECEKAPAN = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ3uEWGgTUJC0ZUfRcyPu1Qdx_ioxEixM2PjjtaBpTR7HWf26ZqXYi-_Lg8qP5v34Z-KgtE-xcNrS8q/pub?gid=2076582354&single=true&output=csv";
         const DEFAULT_URL_PERBANDINGAN = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ3uEWGgTUJC0ZUfRcyPu1Qdx_ioxEixM2PjjtaBpTR7HWf26ZqXYi-_Lg8qP5v34Z-KgtE-xcNrS8q/pub?gid=921703161&single=true&output=csv";
         const DEFAULT_URL_GRA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ3uEWGgTUJC0ZUfRcyPu1Qdx_ioxEixM2PjjtaBpTR7HWf26ZqXYi-_Lg8qP5v34Z-KgtE-xcNrS8q/pub?gid=2136895207&single=true&output=csv";
+        const DEFAULT_URL_TARIKH_KEMASKINI = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ3uEWGgTUJC0ZUfRcyPu1Qdx_ioxEixM2PjjtaBpTR7HWf26ZqXYi-_Lg8qP5v34Z-KgtE-xcNrS8q/pub?gid=1533922509&single=true&output=csv";
 
         // Fungsi mendapatkan URL aktif
         function getActiveGSheetUrls() {
@@ -2101,6 +2109,52 @@
             return String(value ?? '').trim().toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g, '');
         }
 
+        function loadUpdateDateFromGoogleSheets() {
+            const dateEl = document.getElementById('dataUpdateDate');
+            if (!dateEl) return;
+
+            const url = DEFAULT_URL_TARIKH_KEMASKINI + (DEFAULT_URL_TARIKH_KEMASKINI.includes('?') ? '&' : '?') + '_=' + Date.now();
+            fetch(url, { cache: 'no-store' })
+                .then(response => {
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.text();
+                })
+                .then(csvText => {
+                    const rows = parseCSVRows(csvText).filter(row => row.some(cell => String(cell ?? '').trim() !== ''));
+                    if (!rows.length) throw new Error('CSV tarikh kosong');
+
+                    const norm = value => normalizeCSVHeader(value);
+                    const headers = rows[0].map(norm);
+                    const dateHeaderIndex = headers.findIndex(h => /datasehingga|tarikhkemaskini|tarikhkemas kini|tarikhupdate|updatedate|updatedat|tarikhdata/.test(h));
+                    let dateValue = '';
+
+                    if (dateHeaderIndex >= 0) {
+                        for (let i = 1; i < rows.length; i++) {
+                            const value = String(rows[i][dateHeaderIndex] ?? '').trim();
+                            if (value) { dateValue = value; break; }
+                        }
+                    }
+
+                    if (!dateValue) {
+                        const datePattern = /(?:\b\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}\b|\b\d{4}[\/.-]\d{1,2}[\/.-]\d{1,2}\b|\b\d{1,2}\s+(?:jan(?:uari)?|feb(?:ruari)?|mac|apr(?:il)?|mei|jun|jul|ogos|sep(?:tember)?|okt(?:ober)?|nov(?:ember)?|dis(?:ember)?)\s+\d{4}\b)/i;
+                        const searchRows = rows.length > 1 ? rows.slice(1) : rows;
+                        for (const row of searchRows) {
+                            const found = row.map(cell => String(cell ?? '').trim()).find(value => datePattern.test(value));
+                            if (found) { dateValue = found; break; }
+                        }
+                    }
+
+                    if (!dateValue) throw new Error('Tarikh tidak ditemui dalam CSV');
+                    dateEl.textContent = dateValue;
+                    dateEl.title = 'Tarikh kemas kini: ' + dateValue;
+                })
+                .catch(error => {
+                    console.warn('Tidak dapat memuatkan tarikh kemas kini daripada Google Sheets:', error);
+                    dateEl.textContent = 'Tidak tersedia';
+                    dateEl.title = 'Semak pautan CSV tarikh kemas kini dan format sel tarikh';
+                });
+        }
+
         function loadGoogleSheetsCSV(showMessage = false) {
             const refreshButton = document.getElementById('btnSyncGoogleSheets');
             if (refreshButton) refreshButton.disabled = true;
@@ -2935,8 +2989,12 @@
             populateTables();
             lucide.createIcons();
             applyComparisonFilters();
+            loadUpdateDateFromGoogleSheets();
             loadGoogleSheetsCSV(false);
-            setInterval(() => loadGoogleSheetsCSV(false), 5 * 60 * 1000);
+            setInterval(() => {
+                loadGoogleSheetsCSV(false);
+                loadUpdateDateFromGoogleSheets();
+            }, 5 * 60 * 1000);
         };
     </script>
 </body>
