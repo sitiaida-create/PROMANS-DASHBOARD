@@ -1358,11 +1358,11 @@
 
                 let dayBadge = "";
                 if (c.periodCategory === 'gt15') {
-                    dayBadge = `<span class="font-bold text-[10px] text-rose-700">${c.daysTaken} Hari (>15 Hari)</span>`;
+                    dayBadge = `<span class="font-bold text-[10px] text-rose-700">${c.daysTaken} Hari<br><span class="font-normal">(>15 Hari)</span></span>`;
                 } else if (c.periodCategory === '8-14') {
-                    dayBadge = `<span class="font-bold text-[10px] text-amber-700">${c.daysTaken} Hari (7-14 Hari)</span>`;
+                    dayBadge = `<span class="font-bold text-[10px] text-amber-700">${c.daysTaken} Hari<br><span class="font-normal">(7-14 Hari)</span></span>`;
                 } else {
-                    dayBadge = `<span class="font-bold text-[10px] text-blue-700">${c.daysTaken} Hari (1-7 Hari)</span>`;
+                    dayBadge = `<span class="font-bold text-[10px] text-blue-700">${c.daysTaken} Hari<br><span class="font-normal">(1-7 Hari)</span></span>`;
                 }
 
                 const statusColor = c.status === 'Approved' ? 'text-emerald-700' : 'text-orange-700';
