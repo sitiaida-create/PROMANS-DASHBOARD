@@ -526,15 +526,13 @@
                         <div>
                             <label for="comparisonSeries1" class="block text-xs font-semibold text-slate-600 mb-1.5">Siri pertama</label>
                             <select id="comparisonSeries1" onchange="applyComparisonFilters()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-utm-maroon">
-                                <option value="11" selected>Bil. 11/2026</option>
-                                <option value="12">Bil. 12/2026</option>
+                                <option value="0" selected>Memuatkan siri...</option>
                             </select>
                         </div>
                         <div>
                             <label for="comparisonSeries2" class="block text-xs font-semibold text-slate-600 mb-1.5">Siri kedua</label>
                             <select id="comparisonSeries2" onchange="applyComparisonFilters()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-utm-maroon">
-                                <option value="11">Bil. 11/2026</option>
-                                <option value="12" selected>Bil. 12/2026</option>
+                                <option value="1" selected>Memuatkan siri...</option>
                             </select>
                         </div>
                         <div>
@@ -1128,6 +1126,10 @@
 
         let currentJanOgosData = JSON.parse(JSON.stringify(rawJanOgosTemplateData));
         let currentComparisonData = JSON.parse(JSON.stringify(rawComparisonTemplateData));
+        let currentComparisonSeries = [
+            { key: '0', name: 'Bil. 11/2026' },
+            { key: '1', name: 'Bil. 12/2026' }
+        ];
         let currentGraData = JSON.parse(JSON.stringify(rawGraTemplateData));
         let currentGraRecords = { headers: [], rows: [] };
         let filteredGraRecords = { headers: [], rows: [] };
@@ -1418,21 +1420,22 @@
         }
 
         function applyComparisonFilters() {
-            const series1 = document.getElementById('comparisonSeries1')?.value || '11';
-            const series2 = document.getElementById('comparisonSeries2')?.value || '12';
+            const series1 = document.getElementById('comparisonSeries1')?.value ?? '0';
+            const series2 = document.getElementById('comparisonSeries2')?.value ?? '1';
             const process = document.getElementById('comparisonProcessFilter')?.value || 'all';
-            const label1 = series1 === '11' ? 'Bil. 11/2026' : 'Bil. 12/2026';
-            const label2 = series2 === '11' ? 'Bil. 11/2026' : 'Bil. 12/2026';
-            const p1 = series1 === '11' ? 'p11' : 'p12';
-            const k1 = series1 === '11' ? 'k11' : 'k12';
-            const p2 = series2 === '11' ? 'p11' : 'p12';
-            const k2 = series2 === '11' ? 'k11' : 'k12';
-            const rows = currentComparisonData.filter(r => process === 'all' || r.proses === process).map(r => ({
-                ...r, firstP: Number(r[p1]) || 0, firstK: Number(r[k1]) || 0,
-                secondP: Number(r[p2]) || 0, secondK: Number(r[k2]) || 0,
-                dP: (Number(r[p2]) || 0) - (Number(r[p1]) || 0),
-                dK: (Number(r[k2]) || 0) - (Number(r[k1]) || 0)
-            }));
+            const firstSeries = currentComparisonSeries.find(s => s.key === String(series1)) || currentComparisonSeries[0] || { key: '0', name: 'Siri pertama' };
+            const secondSeries = currentComparisonSeries.find(s => s.key === String(series2)) || currentComparisonSeries[1] || firstSeries;
+            const label1 = firstSeries.name;
+            const label2 = secondSeries.name;
+            const rows = currentComparisonData.filter(r => process === 'all' || r.proses === process).map(r => {
+                const first = (r.seriesData || [])[Number(firstSeries.key)] || { p: 0, k: 0 };
+                const second = (r.seriesData || [])[Number(secondSeries.key)] || { p: 0, k: 0 };
+                const firstP = Number(first.p) || 0;
+                const firstK = Number(first.k) || 0;
+                const secondP = Number(second.p) || 0;
+                const secondK = Number(second.k) || 0;
+                return { ...r, firstP, firstK, secondP, secondK, dP: secondP - firstP, dK: secondK - firstK };
+            });
             filteredComparisonData = rows;
 
             const note = document.getElementById('comparisonFilterNote');
@@ -1469,19 +1472,23 @@
                 });
             }
             const totals = {
-                firstP: rows.reduce((s,r)=>s+r.firstP,0), firstK: rows.reduce((s,r)=>s+r.firstK,0),
-                secondP: rows.reduce((s,r)=>s+r.secondP,0), secondK: rows.reduce((s,r)=>s+r.secondK,0),
-                dP: rows.reduce((s,r)=>s+r.dP,0), dK: rows.reduce((s,r)=>s+r.dK,0)
+                firstP: rows.reduce((sum, r) => sum + r.firstP, 0),
+                firstK: rows.reduce((sum, r) => sum + r.firstK, 0),
+                secondP: rows.reduce((sum, r) => sum + r.secondP, 0),
+                secondK: rows.reduce((sum, r) => sum + r.secondK, 0),
+                dP: rows.reduce((sum, r) => sum + r.dP, 0),
+                dK: rows.reduce((sum, r) => sum + r.dK, 0)
             };
-            [['compTotP11',totals.firstP],['compTotK11',totals.firstK],['compTotP12',totals.secondP],['compTotK12',totals.secondK],['compTotDP',totals.dP],['compTotDK',totals.dK]].forEach(([id,val])=>{
-                const el=document.getElementById(id); if(el) el.textContent=(id.endsWith('DP')||id.endsWith('DK'))&&val>0?'+'+val.toLocaleString():val.toLocaleString();
+            [['compTotP11', totals.firstP], ['compTotK11', totals.firstK], ['compTotP12', totals.secondP], ['compTotK12', totals.secondK], ['compTotDP', totals.dP], ['compTotDK', totals.dK]].forEach(([id, val]) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = (id.endsWith('DP') || id.endsWith('DK')) && val > 0 ? '+' + val.toLocaleString() : val.toLocaleString();
             });
             if (comparisonChart) {
-                comparisonChart.data.labels = rows.map(r=>r.proses);
+                comparisonChart.data.labels = rows.map(r => r.proses);
                 comparisonChart.data.datasets[0].label = label1;
-                comparisonChart.data.datasets[0].data = rows.map(r=>r.firstP);
+                comparisonChart.data.datasets[0].data = rows.map(r => r.firstP);
                 comparisonChart.data.datasets[1].label = label2;
-                comparisonChart.data.datasets[1].data = rows.map(r=>r.secondP);
+                comparisonChart.data.datasets[1].data = rows.map(r => r.secondP);
                 comparisonChart.update();
             }
         }
@@ -1645,8 +1652,8 @@
                 data: {
                     labels: filteredComparisonData.map(d => d.proses),
                     datasets: [
-                        { label: 'Bil. 11/2026', data: filteredComparisonData.map(d => d.p11), backgroundColor: '#94a3b8', borderRadius: 4 },
-                        { label: 'Bil. 12/2026', data: filteredComparisonData.map(d => d.p12), backgroundColor: '#7A1315', borderRadius: 4 }
+                        { label: currentComparisonSeries[0]?.name || 'Siri pertama', data: filteredComparisonData.map(d => d.p11), backgroundColor: '#94a3b8', borderRadius: 4 },
+                        { label: currentComparisonSeries[1]?.name || 'Siri kedua', data: filteredComparisonData.map(d => d.p12), backgroundColor: '#7A1315', borderRadius: 4 }
                     ]
                 },
                 options: {
@@ -1956,11 +1963,7 @@
             }
 
             if (comparisonChart) {
-                comparisonChart.data.labels = filteredComparisonData.map(d => d.proses);
-                comparisonChart.data.datasets[0].data = filteredComparisonData.map(d => d.p11);
-                comparisonChart.data.datasets[1].data = filteredComparisonData.map(d => d.p12);
-                comparisonChart.data.datasets[2].data = filteredComparisonData.map(d => d.dP);
-                comparisonChart.update();
+                applyComparisonFilters();
             }
 
             if (graChart) {
@@ -2550,24 +2553,87 @@
                     .then(r => r.ok ? r.text() : null)
                     .then(csv => {
                         if (!csv) return;
-                        const rows = parseCSVRows(csv);
+                        const rows = parseCSVRows(csv).filter(row => row.some(cell => String(cell || '').trim() !== ''));
                         if (rows.length < 2) return;
-                        const dataRows = rows.slice(1);
-                        const mapped = dataRows.map(r => {
-                            const p11 = Number(String(r[1] || '').replace(/[^0-9.-]/g, '')) || 0;
-                            const k11 = Number(String(r[2] || '').replace(/[^0-9.-]/g, '')) || 0;
-                            const p12 = Number(String(r[3] || '').replace(/[^0-9.-]/g, '')) || 0;
-                            const k12 = Number(String(r[4] || '').replace(/[^0-9.-]/g, '')) || 0;
+
+                        // Sokong struktur dua baris tajuk Google Sheets:
+                        // baris pertama = nama siri, baris kedua = Permohonan/Kelulusan.
+                        // Siri baharu di sebelah kanan akan dikesan tanpa perubahan kod.
+                        const norm = value => String(value || '').trim().toLowerCase();
+                        const isProcessHeader = value => /^(proses|process)$/i.test(String(value || '').trim());
+                        let headerIndex = rows.findIndex(row => isProcessHeader(row[0]));
+                        if (headerIndex < 0) headerIndex = 0;
+                        const header1 = rows[headerIndex] || [];
+                        const header2 = rows[headerIndex + 1] || [];
+                        const hasTwoHeaderRows = header2.some(cell => /permohonan|semakan|kelulusan|approval/i.test(norm(cell)));
+                        const dataStart = headerIndex + (hasTwoHeaderRows ? 2 : 1);
+                        const series = [];
+
+                        if (hasTwoHeaderRows) {
+                            for (let col = 1; col < header1.length; col += 2) {
+                                const name = String(header1[col] || header1[col + 1] || '').trim();
+                                if (!name) continue;
+                                series.push({ key: String(series.length), name, pIndex: col, kIndex: col + 1 });
+                            }
+                        } else {
+                            // Format alternatif: satu baris tajuk dengan nama siri pada setiap lajur.
+                            for (let col = 1; col < header1.length; col += 2) {
+                                const pHeader = String(header1[col] || '').trim();
+                                const kHeader = String(header1[col + 1] || '').trim();
+                                const match = pHeader.match(/^(.*?)(?:\s*[-–:]?\s*)(?:jumlah\s*)?(?:permohonan|semakan)$/i);
+                                const name = (match && match[1].trim()) || pHeader.replace(/\s*(?:permohonan|semakan)$/i, '').trim();
+                                if (name) series.push({ key: String(series.length), name, pIndex: col, kIndex: col + 1 });
+                            }
+                        }
+                        if (!series.length) {
+                            console.warn('Tajuk siri perbandingan tidak dapat dikenal pasti.');
+                            return;
+                        }
+
+                        const toNumber = value => {
+                            const cleaned = String(value ?? '').replace(/,/g, '').replace(/[^0-9.-]/g, '');
+                            const parsed = Number(cleaned);
+                            return Number.isFinite(parsed) ? parsed : 0;
+                        };
+                        const mapped = rows.slice(dataStart).map(row => {
+                            const proses = String(row[0] || '').trim();
+                            if (!proses || isProcessHeader(proses)) return null;
+                            const seriesData = series.map(item => ({
+                                p: toNumber(row[item.pIndex]),
+                                k: toNumber(row[item.kIndex])
+                            }));
                             return {
-                                proses: String(r[0] || '').trim(),
-                                p11, k11, p12, k12,
-                                dP: p12 - p11,
-                                dK: k12 - k11
+                                proses,
+                                seriesData,
+                                p11: seriesData[0]?.p || 0,
+                                k11: seriesData[0]?.k || 0,
+                                p12: seriesData[1]?.p || 0,
+                                k12: seriesData[1]?.k || 0,
+                                dP: (seriesData[1]?.p || 0) - (seriesData[0]?.p || 0),
+                                dK: (seriesData[1]?.k || 0) - (seriesData[0]?.k || 0)
                             };
-                        }).filter(d => d.proses);
+                        }).filter(Boolean);
                         if (mapped.length) {
+                            currentComparisonSeries = series.map(item => ({ key: item.key, name: item.name }));
                             currentComparisonData = mapped;
                             filteredComparisonData = [...currentComparisonData];
+
+                            // Rebuild dropdowns dynamically while preserving prior selection where possible.
+                            ['comparisonSeries1', 'comparisonSeries2'].forEach((id, index) => {
+                                const select = document.getElementById(id);
+                                if (!select) return;
+                                const previous = select.value;
+                                select.innerHTML = '';
+                                currentComparisonSeries.forEach(item => {
+                                    const option = document.createElement('option');
+                                    option.value = item.key;
+                                    option.textContent = item.name;
+                                    select.appendChild(option);
+                                });
+                                const fallbackIndex = Math.min(index, currentComparisonSeries.length - 1);
+                                select.value = currentComparisonSeries.some(item => item.key === previous)
+                                    ? previous : currentComparisonSeries[fallbackIndex].key;
+                            });
                             const processSelect = document.getElementById('comparisonProcessFilter');
                             if (processSelect) {
                                 const previous = processSelect.value || 'all';
