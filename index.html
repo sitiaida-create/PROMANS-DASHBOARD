@@ -155,7 +155,7 @@
         <main class="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 space-y-6">
 
             <!-- Bar Penapis Global -->
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+            <div id="globalDataFilters" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
                 <div class="flex items-center space-x-2.5">
                     <div class="w-9 h-9 rounded-xl bg-red-50 text-utm-maroon flex items-center justify-center font-bold">
                         <i data-lucide="filter" class="w-4 h-4"></i>
@@ -1996,6 +1996,8 @@
         }
 
         function switchTab(tabId) {
+            const globalFilters = document.getElementById('globalDataFilters');
+            if (globalFilters) globalFilters.classList.toggle('hidden', tabId === 'perbandingan');
             ['kecekapan', 'perbandingan', 'gra', 'semakan'].forEach(t => {
                 const content = document.getElementById(`tabContent-${t}`);
                 const btn = document.getElementById(`tabBtn-${t}`);
