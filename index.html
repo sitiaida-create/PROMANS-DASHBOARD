@@ -1482,8 +1482,6 @@
                 comparisonChart.data.datasets[0].data = rows.map(r=>r.firstP);
                 comparisonChart.data.datasets[1].label = label2;
                 comparisonChart.data.datasets[1].data = rows.map(r=>r.secondP);
-                comparisonChart.data.datasets[2].label = 'Perbezaan permohonan';
-                comparisonChart.data.datasets[2].data = rows.map(r=>r.dP);
                 comparisonChart.update();
             }
         }
@@ -1648,8 +1646,7 @@
                     labels: filteredComparisonData.map(d => d.proses),
                     datasets: [
                         { label: 'Bil. 11/2026', data: filteredComparisonData.map(d => d.p11), backgroundColor: '#94a3b8', borderRadius: 4 },
-                        { label: 'Bil. 12/2026', data: filteredComparisonData.map(d => d.p12), backgroundColor: '#7A1315', borderRadius: 4 },
-                        { label: 'Peningkatan (+)', data: filteredComparisonData.map(d => d.dP), backgroundColor: '#10b981', borderRadius: 4 }
+                        { label: 'Bil. 12/2026', data: filteredComparisonData.map(d => d.p12), backgroundColor: '#7A1315', borderRadius: 4 }
                     ]
                 },
                 options: {
