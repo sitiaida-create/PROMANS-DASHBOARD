@@ -2962,25 +2962,49 @@
 
             const logContainer = document.getElementById('trackAuditLogs');
             logContainer.innerHTML = '';
-            const logs = [
-                !isOfficerOnlyProcess
-                    ? `Tarikh Terima Permohonan = ${found.clerkReceivedDate || found.clerkDate || '—'} | Tarikh Semak Permohonan = ${found.clerkForwardedDate || '—'} | Tempoh = ${found.clerkDays || 0} hari`
-                    : `Tarikh Terima Permohonan = ${found.officerDate || '—'} | Tarikh Semak Permohonan = ${found.officerApprovalDate || '—'} | Tempoh = ${found.officerDays || 0} hari`,
-                `Pegawai: ${found.officerName || '—'} (Tempoh: ${found.officerDays || 0} hari)`,
-                `Status Terkini: ${found.status}`
-            ].filter(Boolean);
 
-            logs.forEach(log => {
-                const li = document.createElement('li');
-                li.className = "flex items-start space-x-2";
-                const icon = document.createElement('i');
-                icon.setAttribute('data-lucide', 'chevron-right');
-                icon.className = 'w-3.5 h-3.5 text-utm-maroon mt-0.5 shrink-0';
-                const span = document.createElement('span');
-                span.textContent = log;
-                li.append(icon, span);
-                logContainer.appendChild(li);
-            });
+            const addAuditSection = (heading, entries) => {
+                const section = document.createElement('li');
+                section.className = 'rounded-xl border border-slate-200 bg-white p-4 space-y-2';
+                const title = document.createElement('div');
+                title.className = 'font-bold text-slate-800 text-sm';
+                title.textContent = heading;
+                section.appendChild(title);
+
+                entries.forEach(([label, value]) => {
+                    const row = document.createElement('div');
+                    row.className = 'grid grid-cols-1 sm:grid-cols-[minmax(170px,auto)_1fr] gap-1 sm:gap-3 text-xs';
+                    const labelEl = document.createElement('span');
+                    labelEl.className = 'text-slate-500';
+                    labelEl.textContent = label;
+                    const valueEl = document.createElement('span');
+                    valueEl.className = 'font-semibold text-slate-800';
+                    valueEl.textContent = value || '—';
+                    row.append(labelEl, valueEl);
+                    section.appendChild(row);
+                });
+                logContainer.appendChild(section);
+            };
+
+            if (!isOfficerOnlyProcess) {
+                addAuditSection('Semakan Kerani', [
+                    ['Nama Kerani', found.clerkName || '—'],
+                    ['Tarikh Terima Permohonan', found.clerkReceivedDate || found.clerkDate || '—'],
+                    ['Tarikh Semak Permohonan', found.clerkForwardedDate || '—'],
+                    ['Tempoh', found.clerkDays !== undefined && found.clerkDays !== null ? `${found.clerkDays} Hari` : '—']
+                ]);
+            }
+
+            addAuditSection('Semakan Pegawai RMC', [
+                ['Nama Pegawai', found.officerName || '—'],
+                ['Tarikh Terima', found.officerDate || '—'],
+                ['Tarikh Lulus Permohonan', found.officerApprovalDate || '—'],
+                ['Tempoh', found.officerDays !== undefined && found.officerDays !== null ? `${found.officerDays} Hari` : '—']
+            ]);
+
+            addAuditSection('Status Terkini', [
+                ['Status', found.status || 'Tidak dinyatakan']
+            ]);
 
             lucide.createIcons();
             showToast(`Rekod ${found.ref} berjaya dimuatkan.`);
