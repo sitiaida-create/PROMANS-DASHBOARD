@@ -2963,8 +2963,9 @@
             const logContainer = document.getElementById('trackAuditLogs');
             logContainer.innerHTML = '';
             const logs = [
-                !isOfficerOnlyProcess ? `Tarikh Mula Kerani: ${found.clerkDate || '—'} (Tempoh: ${found.clerkDays || 0} hari)` : null,
-                found.pptName && !isOfficerOnlyProcess ? `PPT: ${found.pptName} (Tempoh: ${found.pptDays || 0} hari)` : null,
+                !isOfficerOnlyProcess
+                    ? `Tarikh Terima Permohonan = ${found.clerkReceivedDate || found.clerkDate || '—'} | Tarikh Semak Permohonan = ${found.clerkForwardedDate || '—'} | Tempoh = ${found.clerkDays || 0} hari`
+                    : `Tarikh Terima Permohonan = ${found.officerDate || '—'} | Tarikh Semak Permohonan = ${found.officerApprovalDate || '—'} | Tempoh = ${found.officerDays || 0} hari`,
                 `Pegawai: ${found.officerName || '—'} (Tempoh: ${found.officerDays || 0} hari)`,
                 `Status Terkini: ${found.status}`
             ].filter(Boolean);
@@ -2972,10 +2973,12 @@
             logs.forEach(log => {
                 const li = document.createElement('li');
                 li.className = "flex items-start space-x-2";
-                li.innerHTML = `
-                    <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-utm-maroon mt-0.5 shrink-0"></i>
-                    <span>${log}</span>
-                `;
+                const icon = document.createElement('i');
+                icon.setAttribute('data-lucide', 'chevron-right');
+                icon.className = 'w-3.5 h-3.5 text-utm-maroon mt-0.5 shrink-0';
+                const span = document.createElement('span');
+                span.textContent = log;
+                li.append(icon, span);
                 logContainer.appendChild(li);
             });
 
