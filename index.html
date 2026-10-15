@@ -1757,7 +1757,7 @@
             const useApprovalDuration = durationMode === 'kelulusan';
             const records = getGlobalFilterMatchedProcessingRecords(r.proses);
             const sourceLabel = String(r.proses || '').toLowerCase();
-            const officerOnly = /extension|perlanjutan|progress\\s*report|end\\s*report/i.test(sourceLabel);
+            const officerOnly = /extension|perlanjutan|progress\s*report|end\s*report/i.test(sourceLabel);
             const eligible = records.filter(row => {
                 if (useApprovalDuration) {
                     return String(row.officerName || '').trim() !== '' && Number(row.officerDays) > 0 &&
