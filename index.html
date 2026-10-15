@@ -1428,8 +1428,12 @@
             const label1 = firstSeries.name;
             const label2 = secondSeries.name;
             const rows = currentComparisonData.filter(r => process === 'all' || r.proses === process).map(r => {
-                const first = (r.seriesData || [])[Number(firstSeries.key)] || { p: 0, k: 0 };
-                const second = (r.seriesData || [])[Number(secondSeries.key)] || { p: 0, k: 0 };
+                const availableSeries = r.seriesData || [
+                    { p: r.p11 || 0, k: r.k11 || 0 },
+                    { p: r.p12 || 0, k: r.k12 || 0 }
+                ];
+                const first = availableSeries[Number(firstSeries.key)] || { p: 0, k: 0 };
+                const second = availableSeries[Number(secondSeries.key)] || { p: 0, k: 0 };
                 const firstP = Number(first.p) || 0;
                 const firstK = Number(first.k) || 0;
                 const secondP = Number(second.p) || 0;
@@ -2685,14 +2689,26 @@
                 const ws1 = XLSX.utils.aoa_to_sheet(sheet1Data);
                 XLSX.utils.book_append_sheet(wb, ws1, "Kecekapan Proses Jan-Ogos");
 
-                const sheet2Data = [
-                    ["Proses", "Bil 11 Permohonan", "Bil 11 Kelulusan", "Bil 12 Permohonan", "Bil 12 Kelulusan", "Peningkatan Permohonan", "Peningkatan Kelulusan"]
-                ];
+                const sheet2Data = [["Proses"]];
+                currentComparisonSeries.forEach(series => {
+                    sheet2Data[0].push(series.name + " - Permohonan", series.name + " - Kelulusan");
+                });
+                sheet2Data[0].push("Perbezaan Permohonan (siri dipilih)", "Perbezaan Kelulusan (siri dipilih)");
                 currentComparisonData.forEach(d => {
-                    sheet2Data.push([d.proses, d.p11, d.k11, d.p12, d.k12, d.dP, d.dK]);
+                    const row = [d.proses];
+                    (d.seriesData || [
+                        { p: d.p11 || 0, k: d.k11 || 0 },
+                        { p: d.p12 || 0, k: d.k12 || 0 }
+                    ]).forEach(item => row.push(item.p, item.k));
+                    const firstIndex = Number(document.getElementById('comparisonSeries1')?.value || 0);
+                    const secondIndex = Number(document.getElementById('comparisonSeries2')?.value || 1);
+                    const allSeries = d.seriesData || [{ p: d.p11 || 0, k: d.k11 || 0 }, { p: d.p12 || 0, k: d.k12 || 0 }];
+                    row.push((allSeries[secondIndex]?.p || 0) - (allSeries[firstIndex]?.p || 0));
+                    row.push((allSeries[secondIndex]?.k || 0) - (allSeries[firstIndex]?.k || 0));
+                    sheet2Data.push(row);
                 });
                 const ws2 = XLSX.utils.aoa_to_sheet(sheet2Data);
-                XLSX.utils.book_append_sheet(wb, ws2, "Perbandingan Bil 11 vs 12");
+                XLSX.utils.book_append_sheet(wb, ws2, "Perbandingan Semua Siri");
 
                 const sheet3Data = [
                     ["Status", "Bil. 11/2026", "Bil. 12/2026", "% Bil. 12", "Peningkatan"]
