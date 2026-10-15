@@ -1766,6 +1766,8 @@
                         p1: c1 / eligible.length * 100, p2: c2 / eligible.length * 100, p3: c3 / eligible.length * 100 };
                 }
                 const denominator = useApprovalDuration ? r.kelulusan : r.permohonan;
+                // Jangan gunakan peratus tempoh kerani sebagai pengganti tempoh pegawai.
+                if (useApprovalDuration) return { denominator, c1: 0, c2: 0, c3: 0, p1: 0, p2: 0, p3: 0 };
                 const c1 = Math.round(((r.d1_7 || 0) / 100) * denominator);
                 const c2 = Math.round(((r.d8_14 || 0) / 100) * denominator);
                 const c3 = Math.round(((r.dgt15 || 0) / 100) * denominator);
