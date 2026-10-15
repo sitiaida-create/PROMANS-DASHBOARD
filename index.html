@@ -420,6 +420,13 @@
                         </div>
                     </div>
 
+                    <div class="flex flex-wrap items-center gap-2 mb-3">
+                        <label for="durationDisplayMode" class="text-xs font-semibold text-slate-600">Paparan tempoh:</label>
+                        <select id="durationDisplayMode" onchange="populateTables()" class="text-xs bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-utm-maroon">
+                            <option value="permohonan">Permohonan (tempoh kerani)</option>
+                            <option value="kelulusan">Kelulusan (tempoh pegawai)</option>
+                        </select>
+                    </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-xs text-left">
                             <thead class="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider text-[11px]">
@@ -428,9 +435,9 @@
                                     <th class="py-3 px-3 text-right">Jumlah Permohonan</th>
                                     <th class="py-3 px-3 text-right">Jumlah Kelulusan</th>
                                     <th class="py-3 px-3 text-center">% Kelulusan</th>
-                                    <th class="py-3 px-3 text-center bg-blue-50/70 text-blue-900">(%) 1-7 Hari [permohonan]</th>
-                                    <th class="py-3 px-3 text-center bg-amber-50/70 text-amber-900">(%) 7-14 Hari [permohonan]</th>
-                                    <th class="py-3 px-3 text-center bg-rose-50/70 text-rose-900">(%) &gt;15 Hari [permohonan]</th>
+                                    <th id="durationHeader1" class="py-3 px-3 text-center bg-blue-50/70 text-blue-900">(%) 1-7 Hari [permohonan]</th>
+                                    <th id="durationHeader2" class="py-3 px-3 text-center bg-amber-50/70 text-amber-900">(%) 7-14 Hari [permohonan]</th>
+                                    <th id="durationHeader3" class="py-3 px-3 text-center bg-rose-50/70 text-rose-900">(%) &gt;15 Hari [permohonan]</th>
                                 </tr>
                             </thead>
                             <tbody id="janOgosTableBody" class="divide-y divide-slate-100"></tbody>
@@ -1730,6 +1737,41 @@
             let sumCount1_7 = 0;
             let sumCount7_14 = 0;
             let sumCountGt15 = 0;
+            const durationMode = document.getElementById('durationDisplayMode')?.value || 'permohonan';
+            const useApprovalDuration = durationMode === 'kelulusan';
+            const durationLabel = useApprovalDuration ? 'kelulusan' : 'permohonan';
+            ['durationHeader1', 'durationHeader2', 'durationHeader3'].forEach((id, index) => {
+                const header = document.getElementById(id);
+                if (header) header.innerHTML = ['(%) 1-7 Hari', '(%) 7-14 Hari', '(%) &gt;15 Hari'][index] + ' [' + durationLabel + ']';
+            });
+
+            const getDurationStats = r => {
+                const records = getGlobalFilterMatchedProcessingRecords(r.proses);
+                const sourceLabel = String(r.proses || '').toLowerCase();
+                const officerOnly = /extension|perlanjutan|progress\s*report|end\s*report/i.test(sourceLabel);
+                const eligible = records.filter(row => {
+                    if (useApprovalDuration) {
+                        return String(row.officerName || '').trim() !== '' && Number(row.officerDays) > 0 &&
+                            (!/extension|perlanjutan/i.test(sourceLabel) || /^approved$/i.test(String(row.status || '').trim()));
+                    }
+                    if (officerOnly) return String(row.officerName || '').trim() !== '' && Number(row.officerDays) > 0;
+                    return String(row.clerkName || '').trim() !== '' && Number(row.clerkDays) > 0;
+                });
+                if (eligible.length) {
+                    const daysFor = row => Number(useApprovalDuration || officerOnly ? row.officerDays : row.clerkDays) || 0;
+                    const c1 = eligible.filter(row => daysFor(row) >= 1 && daysFor(row) <= 7).length;
+                    const c2 = eligible.filter(row => daysFor(row) >= 8 && daysFor(row) <= 14).length;
+                    const c3 = eligible.filter(row => daysFor(row) > 14).length;
+                    return { denominator: eligible.length, c1, c2, c3,
+                        p1: c1 / eligible.length * 100, p2: c2 / eligible.length * 100, p3: c3 / eligible.length * 100 };
+                }
+                const denominator = useApprovalDuration ? r.kelulusan : r.permohonan;
+                const c1 = Math.round(((r.d1_7 || 0) / 100) * denominator);
+                const c2 = Math.round(((r.d8_14 || 0) / 100) * denominator);
+                const c3 = Math.round(((r.dgt15 || 0) / 100) * denominator);
+                return { denominator, c1, c2, c3, p1: denominator ? c1 / denominator * 100 : 0,
+                    p2: denominator ? c2 / denominator * 100 : 0, p3: denominator ? c3 / denominator * 100 : 0 };
+            };
 
             if (filteredJanOgosData.length === 0) {
                 tBodyJan.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400">Tiada proses sepadan dengan penapis templat.</td></tr>`;
@@ -1738,9 +1780,13 @@
                     totP += r.permohonan;
                     totK += r.kelulusan;
 
-                    const count1_7 = Math.round((r.d1_7 / 100) * r.permohonan);
-                    const count7_14 = Math.round((r.d8_14 / 100) * r.permohonan);
-                    const countGt15 = Math.round((r.dgt15 / 100) * r.permohonan);
+                    const durationStats = getDurationStats(r);
+                    const count1_7 = durationStats.c1;
+                    const count7_14 = durationStats.c2;
+                    const countGt15 = durationStats.c3;
+                    const pct1_7 = durationStats.p1;
+                    const pct7_14 = durationStats.p2;
+                    const pctGt15 = durationStats.p3;
                     sumCount1_7 += count1_7;
                     sumCount7_14 += count7_14;
                     sumCountGt15 += countGt15;
@@ -1759,9 +1805,9 @@
                         <td class="py-3 px-3 text-right font-mono" onclick="openProcessCasesModal('${r.proses}', 'all')">${r.permohonan.toLocaleString()}</td>
                         <td class="py-3 px-3 text-right font-mono font-bold text-slate-900" onclick="openProcessCasesModal('${r.proses}', 'all')">${r.kelulusan.toLocaleString()}</td>
                         <td class="py-3 px-3 text-center font-bold text-emerald-700" onclick="openProcessCasesModal('${r.proses}', 'all')">${r.pctKelulusan}%</td>
-                        <td class="py-3 px-3 text-center bg-blue-50/40 font-bold text-blue-800" onclick="openProcessCasesModal('${r.proses}', '1-7')" title="Klik untuk lihat permohonan 1-7 hari">${r.d1_7}% <span class="text-[10px] text-blue-700 font-normal">(${count1_7.toLocaleString()})</span></td>
-                        <td class="py-3 px-3 text-center bg-amber-50/40 text-amber-900 font-semibold hover:bg-amber-100 transition" onclick="openProcessCasesModal('${r.proses}', '8-14')" title="Klik untuk lihat permohonan 7-14 hari">${r.d8_14}% <span class="text-[10px] text-amber-700 font-normal">(${count7_14})</span></td>
-                        <td class="py-3 px-3 text-center bg-rose-50/40 text-rose-900 font-semibold hover:bg-rose-100 transition" onclick="openProcessCasesModal('${r.proses}', 'gt15')" title="Klik untuk lihat permohonan >15 hari">${r.dgt15}% <span class="text-[10px] text-rose-700 font-normal">(${countGt15})</span></td>
+                        <td class="py-3 px-3 text-center bg-blue-50/40 font-bold text-blue-800" onclick="openProcessCasesModal('${r.proses}', '1-7')" title="Klik untuk lihat rekod tempoh 1-7 hari">${pct1_7.toFixed(1)}% <span class="text-[10px] text-blue-700 font-normal">(${count1_7.toLocaleString()})</span></td>
+                        <td class="py-3 px-3 text-center bg-amber-50/40 text-amber-900 font-semibold hover:bg-amber-100 transition" onclick="openProcessCasesModal('${r.proses}', '8-14')" title="Klik untuk lihat rekod tempoh 7-14 hari">${pct7_14.toFixed(1)}% <span class="text-[10px] text-amber-700 font-normal">(${count7_14.toLocaleString()})</span></td>
+                        <td class="py-3 px-3 text-center bg-rose-50/40 text-rose-900 font-semibold hover:bg-rose-100 transition" onclick="openProcessCasesModal('${r.proses}', 'gt15')" title="Klik untuk lihat rekod tempoh lebih 15 hari">${pctGt15.toFixed(1)}% <span class="text-[10px] text-rose-700 font-normal">(${countGt15.toLocaleString()})</span></td>
                     `;
                     tBodyJan.appendChild(tr);
                 });
@@ -1774,9 +1820,9 @@
                 <td class="py-3 px-3 text-right font-mono font-bold">${totP.toLocaleString()}</td>
                 <td class="py-3 px-3 text-right font-mono font-bold text-utm-maroon">${totK.toLocaleString()}</td>
                 <td class="py-3 px-3 text-center font-bold text-emerald-700">${totPct}%</td>
-                <td class="py-3 px-3 text-center font-bold text-blue-900 bg-blue-100/50">${sumCount1_7.toLocaleString()} permohonan</td>
-                <td class="py-3 px-3 text-center font-bold text-amber-950 bg-amber-100/50">${sumCount7_14.toLocaleString()} permohonan</td>
-                <td class="py-3 px-3 text-center font-bold text-rose-950 bg-rose-100/50">${sumCountGt15.toLocaleString()} permohonan</td>
+                <td class="py-3 px-3 text-center font-bold text-blue-900 bg-blue-100/50">${sumCount1_7.toLocaleString()} ${durationLabel}</td>
+                <td class="py-3 px-3 text-center font-bold text-amber-950 bg-amber-100/50">${sumCount7_14.toLocaleString()} ${durationLabel}</td>
+                <td class="py-3 px-3 text-center font-bold text-rose-950 bg-rose-100/50">${sumCountGt15.toLocaleString()} ${durationLabel}</td>
             `;
 
             renderDurationPanels(sumCount7_14, sumCountGt15, totP);
