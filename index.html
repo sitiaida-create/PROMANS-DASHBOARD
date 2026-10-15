@@ -1749,6 +1749,39 @@
             if (permohonanBtn) permohonanBtn.setAttribute('aria-pressed', String(!isApproval));
             if (kelulusanBtn) kelulusanBtn.setAttribute('aria-pressed', String(isApproval));
             populateTables();
+            updateCharts();
+        }
+
+        function getDurationStatsForProcess(r) {
+            const durationMode = document.getElementById('durationDisplayMode')?.value || 'permohonan';
+            const useApprovalDuration = durationMode === 'kelulusan';
+            const records = getGlobalFilterMatchedProcessingRecords(r.proses);
+            const sourceLabel = String(r.proses || '').toLowerCase();
+            const officerOnly = /extension|perlanjutan|progress\\s*report|end\\s*report/i.test(sourceLabel);
+            const eligible = records.filter(row => {
+                if (useApprovalDuration) {
+                    return String(row.officerName || '').trim() !== '' && Number(row.officerDays) > 0 &&
+                        (!/extension|perlanjutan/i.test(sourceLabel) || /^approved$/i.test(String(row.status || '').trim()));
+                }
+                if (officerOnly) return String(row.officerName || '').trim() !== '' && Number(row.officerDays) > 0;
+                return String(row.clerkName || '').trim() !== '' && Number(row.clerkDays) > 0;
+            });
+            if (eligible.length) {
+                const daysFor = row => Number(useApprovalDuration || officerOnly ? row.officerDays : row.clerkDays) || 0;
+                const c1 = eligible.filter(row => daysFor(row) >= 1 && daysFor(row) <= 7).length;
+                const c2 = eligible.filter(row => daysFor(row) >= 8 && daysFor(row) <= 14).length;
+                const c3 = eligible.filter(row => daysFor(row) > 14).length;
+                return { denominator: eligible.length, c1, c2, c3,
+                    p1: c1 / eligible.length * 100, p2: c2 / eligible.length * 100, p3: c3 / eligible.length * 100 };
+            }
+            const denominator = useApprovalDuration ? r.kelulusan : r.permohonan;
+            // Jangan gunakan peratus tempoh kerani sebagai pengganti tempoh pegawai.
+            if (useApprovalDuration) return { denominator, c1: 0, c2: 0, c3: 0, p1: 0, p2: 0, p3: 0 };
+            const c1 = Math.round(((r.d1_7 || 0) / 100) * denominator);
+            const c2 = Math.round(((r.d8_14 || 0) / 100) * denominator);
+            const c3 = Math.round(((r.dgt15 || 0) / 100) * denominator);
+            return { denominator, c1, c2, c3, p1: denominator ? c1 / denominator * 100 : 0,
+                p2: denominator ? c2 / denominator * 100 : 0, p3: denominator ? c3 / denominator * 100 : 0 };
         }
 
         function populateTables() {
@@ -1769,35 +1802,7 @@
                 if (header) header.innerHTML = ['(%) 1-7 Hari', '(%) 7-14 Hari', '(%) &gt;15 Hari'][index] + ' [' + durationLabel + ']';
             });
 
-            const getDurationStats = r => {
-                const records = getGlobalFilterMatchedProcessingRecords(r.proses);
-                const sourceLabel = String(r.proses || '').toLowerCase();
-                const officerOnly = /extension|perlanjutan|progress\s*report|end\s*report/i.test(sourceLabel);
-                const eligible = records.filter(row => {
-                    if (useApprovalDuration) {
-                        return String(row.officerName || '').trim() !== '' && Number(row.officerDays) > 0 &&
-                            (!/extension|perlanjutan/i.test(sourceLabel) || /^approved$/i.test(String(row.status || '').trim()));
-                    }
-                    if (officerOnly) return String(row.officerName || '').trim() !== '' && Number(row.officerDays) > 0;
-                    return String(row.clerkName || '').trim() !== '' && Number(row.clerkDays) > 0;
-                });
-                if (eligible.length) {
-                    const daysFor = row => Number(useApprovalDuration || officerOnly ? row.officerDays : row.clerkDays) || 0;
-                    const c1 = eligible.filter(row => daysFor(row) >= 1 && daysFor(row) <= 7).length;
-                    const c2 = eligible.filter(row => daysFor(row) >= 8 && daysFor(row) <= 14).length;
-                    const c3 = eligible.filter(row => daysFor(row) > 14).length;
-                    return { denominator: eligible.length, c1, c2, c3,
-                        p1: c1 / eligible.length * 100, p2: c2 / eligible.length * 100, p3: c3 / eligible.length * 100 };
-                }
-                const denominator = useApprovalDuration ? r.kelulusan : r.permohonan;
-                // Jangan gunakan peratus tempoh kerani sebagai pengganti tempoh pegawai.
-                if (useApprovalDuration) return { denominator, c1: 0, c2: 0, c3: 0, p1: 0, p2: 0, p3: 0 };
-                const c1 = Math.round(((r.d1_7 || 0) / 100) * denominator);
-                const c2 = Math.round(((r.d8_14 || 0) / 100) * denominator);
-                const c3 = Math.round(((r.dgt15 || 0) / 100) * denominator);
-                return { denominator, c1, c2, c3, p1: denominator ? c1 / denominator * 100 : 0,
-                    p2: denominator ? c2 / denominator * 100 : 0, p3: denominator ? c3 / denominator * 100 : 0 };
-            };
+            const getDurationStats = r => getDurationStatsForProcess(r);
 
             if (filteredJanOgosData.length === 0) {
                 tBodyJan.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400">Tiada proses sepadan dengan penapis templat.</td></tr>`;
@@ -2023,10 +2028,14 @@
 
         function updateCharts() {
             if (timeChart) {
+                const durationStats = filteredJanOgosData.map(d => getDurationStatsForProcess(d));
                 timeChart.data.labels = filteredJanOgosData.map(d => d.proses);
-                timeChart.data.datasets[0].data = filteredJanOgosData.map(d => d.d1_7);
-                timeChart.data.datasets[1].data = filteredJanOgosData.map(d => d.d8_14);
-                timeChart.data.datasets[2].data = filteredJanOgosData.map(d => d.dgt15);
+                timeChart.data.datasets[0].data = durationStats.map(d => Number(d.p1.toFixed(1)));
+                timeChart.data.datasets[1].data = durationStats.map(d => Number(d.p2.toFixed(1)));
+                timeChart.data.datasets[2].data = durationStats.map(d => Number(d.p3.toFixed(1)));
+                timeChart.data.datasets[0].label = '(%) 1-7 Hari';
+                timeChart.data.datasets[1].label = '(%) 8-14 Hari';
+                timeChart.data.datasets[2].label = '(%) >15 Hari';
                 timeChart.update();
             }
 
