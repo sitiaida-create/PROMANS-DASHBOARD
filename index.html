@@ -2396,9 +2396,48 @@
                 });
         }
 
+        function getGlobalFilteredAllApplicationRows() {
+            const headers = currentAllApplications.headers || [];
+            const rows = currentAllApplications.rows || [];
+            const norm = value => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const findCol = aliases => headers.findIndex(h => aliases.includes(norm(h)));
+            const sourceCol = findCol(['source', 'process', 'proses', 'jenisproses', 'namaproses']);
+            const monthCol = findCol(['month', 'bulan', 'bulanpermohonan']);
+            const yearFilter = document.getElementById('filterTahun')?.value || 'all';
+            const monthFilter = document.getElementById('filterBulan')?.value || 'all';
+            const processFilter = document.getElementById('filterProses')?.value || 'all';
+
+            const dateParts = value => {
+                const raw = String(value || '').trim();
+                if (!raw) return { year: '', month: '' };
+                let m = raw.match(/(?:^|\\D)((?:19|20)\\d{2})[-/.](0?[1-9]|1[0-2])(?:[-/.]\\d{1,2})?(?:\\D|$)/);
+                if (m) return { year: m[1], month: String(Number(m[2])) };
+                m = raw.match(/(?:^|\\D)(0?[1-9]|1[0-2])[-/.]((?:19|20)\\d{2})(?:\\D|$)/);
+                if (m) return { year: m[2], month: String(Number(m[1])) };
+                const months = { jan:1, january:1, januari:1, feb:2, february:2, februari:2, mar:3, march:3, mac:3, apr:4, april:4, may:5, mei:5, jun:6, june:6, jul:7, july:7, julai:7, aug:8, august:8, ogos:8, sep:9, september:9, sept:9, oct:10, october:10, oktober:10, nov:11, november:11, dec:12, december:12, disember:12 };
+                const name = raw.toLowerCase().match(/\\b(january|januari|february|februari|march|mac|april|may|mei|june|jun|july|julai|august|ogos|september|sept|october|oktober|november|december|jan|feb|mar|apr|jul|aug|sep|oct|nov|dec)\\b/);
+                const y = raw.match(/\\b((?:19|20)\\d{2})\\b/);
+                if (y || name) return { year: y ? y[1] : '', month: name ? String(months[name[1]]) : '' };
+                const parsed = new Date(raw);
+                return !Number.isNaN(parsed.getTime()) && /\\d/.test(raw)
+                    ? { year: String(parsed.getFullYear()), month: String(parsed.getMonth() + 1) }
+                    : { year: '', month: '' };
+            };
+
+            return rows.filter(row => {
+                if (processFilter !== 'all' && sourceCol >= 0 &&
+                    String(row[sourceCol] || '').trim().toLowerCase() !== processFilter.trim().toLowerCase()) return false;
+                const parts = dateParts(monthCol >= 0 ? row[monthCol] : '');
+                if (yearFilter !== 'all' && parts.year && parts.year !== yearFilter) return false;
+                if (monthFilter !== 'all' && parts.month && parts.month !== String(Number(monthFilter))) return false;
+                // Jika sumber tiada maklumat tarikh, jangan gugurkan rekod secara senyap.
+                return true;
+            });
+        }
+
         function changeApplicationsPage(direction) {
             const query = String(applicationSearchQuery || '').trim().toLowerCase();
-            const allRows = currentAllApplications.rows || [];
+            const allRows = getGlobalFilteredAllApplicationRows();
             const rows = query ? allRows.filter(row => row.some(cell => String(cell ?? '').toLowerCase().includes(query))) : allRows;
             const totalPages = Math.max(1, Math.ceil(rows.length / APPLICATIONS_PAGE_SIZE));
             currentApplicationsPage = Math.min(totalPages, Math.max(1, currentApplicationsPage + direction));
@@ -2449,7 +2488,7 @@
             if (!head || !body || !count) return;
 
             const headers = currentAllApplications.headers || [];
-            const allRows = currentAllApplications.rows || [];
+            const allRows = getGlobalFilteredAllApplicationRows();
             const normalizeHeader = value => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
             const wantedColumns = ['source', 'raw', 'row', 'month', 'recordid', 'totalprocessingdays', 'status'];
             const visibleColumns = wantedColumns
