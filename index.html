@@ -2309,9 +2309,13 @@
                                     if (row.officerName.trim() && row.officerDays > 0) {
                                         g.kelulusan++;
                                         // Kelulusan dikelaskan mengikut tahun permohonan, bukan tahun tindakan pegawai.
-                                        const applicationDate = row.month && yearOf(row.month)
-                                            ? row.month
-                                            : (row.clerkReceivedDate || row.clerkDate || row.officerDate);
+                                        const isProposal = /proposal|cadangan/i.test(sourceLabel);
+                                        // Proposal dikira mengikut tarikh permohonan diterima, bukan tarikh kelulusan.
+                                        const applicationDate = isProposal
+                                            ? (row.clerkReceivedDate || row.clerkDate || row.month || row.officerDate)
+                                            : (row.month && yearOf(row.month)
+                                                ? row.month
+                                                : (row.clerkReceivedDate || row.clerkDate || row.officerDate));
                                         const y = yearOf(applicationDate);
                                         if (y) g.kelulusanByYear[y] = (g.kelulusanByYear[y] || 0) + 1;
                                     }
