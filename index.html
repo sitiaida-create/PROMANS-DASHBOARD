@@ -746,7 +746,7 @@
                                 <span id="trackStatusBadge" class="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase"></span>
                             </div>
                             <h4 id="trackTitle" class="text-base font-bold text-slate-900 mt-1"></h4>
-                            <p class="text-xs text-slate-500">Pemohon: <span id="trackApplicant" class="font-medium text-slate-700"></span> &bull; Tarikh Mohon: <span id="trackDate" class="font-medium text-slate-700"></span></p>
+                            <p class="text-xs text-slate-500">Tarikh Mohon: <span id="trackDate" class="font-medium text-slate-700"></span></p>
                         </div>
                         <div class="text-left sm:text-right">
                             <div class="text-2xs uppercase text-slate-400 font-bold">Tempoh Masa Semasa</div>
@@ -2959,7 +2959,6 @@
             resultBox.classList.remove('hidden');
             document.getElementById('trackRefNo').innerText = found.ref;
             document.getElementById('trackTitle').innerText = found.source || 'Proses Permohonan';
-            document.getElementById('trackApplicant').innerText = found.clerkName ? `Kerani: ${found.clerkName}` : '—';
             const isOfficerOnlyProcess = /extension|perlanjutan|progress\s*report|end\s*report/i.test(String(found.source || ''));
             document.getElementById('trackDate').innerText = found.clerkDate || found.officerDate || '—';
             document.getElementById('trackDuration').innerText = `${found.totalDays} Hari`;
