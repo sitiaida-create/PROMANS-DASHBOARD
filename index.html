@@ -1187,23 +1187,33 @@
                 if (!Number.isNaN(parsed.getTime()) && /\d/.test(raw)) {
                     return { year: String(parsed.getFullYear()), month: String(parsed.getMonth() + 1) };
                 }
-                const monthNames = { jan:1, january:1, januari:1, feb:2, february:2, februari:2, mar:3, march:3, mac:3, apr:4, april:4, may:5, mei:5, jun:6, june:6, jun:6, jul:7, july:7, julai:7, aug:8, august:8, ogos:8, sep:9, september:9, sept:9, oct:10, october:10, oktober:10, nov:11, november:11, dec:12, december:12, disember:12 };
+                const monthNames = { jan:1, january:1, januari:1, feb:2, february:2, februari:2, mar:3, march:3, mac:3, apr:4, april:4, may:5, mei:5, jun:6, june:6, jul:7, july:7, julai:7, aug:8, august:8, ogos:8, sep:9, september:9, sept:9, oct:10, october:10, oktober:10, nov:11, november:11, dec:12, december:12, disember:12 };
                 const nameMatch = raw.toLowerCase().match(/\b(january|januari|february|februari|march|mac|april|may|mei|june|jun|july|julai|august|ogos|september|sept|october|oktober|november|december|disember|jan|feb|mar|apr|jul|aug|sep|oct|nov|dec)\b/);
                 const yearMatch = raw.match(/\b((?:19|20)\d{2})\b/);
                 return { year: yearMatch ? yearMatch[1] : '', month: nameMatch ? String(monthNames[nameMatch[1]]) : '' };
             };
 
+            const getApplicationDateParts = row => {
+                // Tahun statistik mengikut tarikh permohonan, bukan tarikh kelulusan.
+                const monthParts = getDateParts(row.month);
+                if (monthParts.year) return monthParts;
+                const source = String(row.source || '').toLowerCase();
+                const officerOnly = /extension|perlanjutan|progress\s*report|end\s*report|(^|\b)(er|pr)(\b|$)/i.test(source);
+                const fallbackDates = officerOnly
+                    ? [row.officerDate, row.clerkReceivedDate, row.clerkDate]
+                    : [row.clerkReceivedDate, row.clerkDate, row.officerDate];
+                for (const value of fallbackDates) {
+                    const parts = getDateParts(value);
+                    if (parts.year || parts.month) return parts;
+                }
+                return monthParts;
+            };
+
             return rawProcessingRecords.filter(row => {
                 if (wantedProcess && wantedProcess !== 'all' && normalize(row.source) !== normalize(wantedProcess)) return false;
-                const dateValues = [row.month, row.officerDate, row.officerApprovalDate, row.clerkDate, row.clerkReceivedDate, row.clerkForwardedDate].filter(Boolean);
-                const parts = dateValues.map(getDateParts);
-                if (yearFilter !== 'all' && monthFilter !== 'all') {
-                    if (!parts.some(p => p.year === yearFilter && p.month === String(Number(monthFilter)))) return false;
-                } else if (yearFilter !== 'all') {
-                    if (!parts.some(p => p.year === yearFilter)) return false;
-                } else if (monthFilter !== 'all') {
-                    if (!parts.some(p => p.month === String(Number(monthFilter)))) return false;
-                }
+                const parts = getApplicationDateParts(row);
+                if (yearFilter !== 'all' && parts.year !== yearFilter) return false;
+                if (monthFilter !== 'all' && parts.month !== String(Number(monthFilter))) return false;
                 return true;
             });
         }
@@ -2298,7 +2308,11 @@
                                     }
                                     if (row.officerName.trim() && row.officerDays > 0) {
                                         g.kelulusan++;
-                                        const y = yearOf(row.officerDate);
+                                        // Kelulusan dikelaskan mengikut tahun permohonan, bukan tahun tindakan pegawai.
+                                        const applicationDate = row.month && yearOf(row.month)
+                                            ? row.month
+                                            : (row.clerkReceivedDate || row.clerkDate || row.officerDate);
+                                        const y = yearOf(applicationDate);
                                         if (y) g.kelulusanByYear[y] = (g.kelulusanByYear[y] || 0) + 1;
                                     }
                                 }
