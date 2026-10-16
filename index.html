@@ -1544,16 +1544,21 @@
                 weight = monthlyWeights[parseInt(bulanVal)] || 0.12;
             }
 
+            // Data asas templat belum mempunyai pecahan tahunan. Jangan tukar angka kepada 0
+            // hanya kerana tiada medan permohonanByYear/kelulusanByYear.
             let janData = currentJanOgosData.map(d => {
-                const pBase = tahunVal === 'all' ? d.permohonan : (d.permohonanByYear?.[tahunVal] || 0);
-                const kBase = tahunVal === 'all' ? d.kelulusan : (d.kelulusanByYear?.[tahunVal] || 0);
+                const hasYearData = tahunVal !== 'all' &&
+                    Object.prototype.hasOwnProperty.call(d.permohonanByYear || {}, tahunVal) &&
+                    Object.prototype.hasOwnProperty.call(d.kelulusanByYear || {}, tahunVal);
+                const pBase = hasYearData ? Number(d.permohonanByYear[tahunVal]) || 0 : Number(d.permohonan) || 0;
+                const kBase = hasYearData ? Number(d.kelulusanByYear[tahunVal]) || 0 : Number(d.kelulusan) || 0;
                 const p = bulanVal === 'all' ? pBase : Math.round(pBase * weight);
                 const k = bulanVal === 'all' ? kBase : Math.round(kBase * weight);
                 return {
                     ...d,
                     permohonan: p,
                     kelulusan: Math.min(k, p),
-                    pctKelulusan: p > 0 ? Math.min(100, Math.round((k / p) * 100)) : d.pctKelulusan
+                    pctKelulusan: p > 0 ? Math.min(100, Math.round((k / p) * 100)) : 0
                 };
             });
 
@@ -1574,8 +1579,25 @@
             });
 
             if (prosesVal !== 'all') {
-                janData = janData.filter(d => d.proses === prosesVal);
-                compData = compData.filter(d => d.proses === prosesVal);
+                const normalizeProcess = value => String(value || '').toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+                const processAliases = {
+                    'aktivitidalamnegara': ['aktivitidalamnegara', 'aktivitidn', 'aktivitiDN'.toLowerCase()],
+                    'aktivitiluarnegara': ['aktivitiluarnegara', 'aktivitiln'],
+                    'pelantikanraro': ['pelantikanraro', 'aroraro', 'ra', 'ro'],
+                    'pelantikangrasra': ['pelantikangrasra', 'rsgspb', 'gra', 'sra'],
+                    'tuntutansra': ['tuntutansra', 'claim'],
+                    'semakanendreport': ['semakanendreport', 'er', 'endreport'],
+                    'semakanprogressreport': ['semakanprogressreport', 'pr', 'progressreport'],
+                    'pengaktifangeran': ['pengaktifangeran', 'proposal'],
+                    'pertukaranketuaahli projek': ['pertukaranketuaahli projek', 'member'].map(normalizeProcess),
+                    'perlanjutantempoh': ['perlanjutantempoh', 'extension']
+                };
+                const wanted = normalizeProcess(prosesVal);
+                const aliases = processAliases[wanted] || [wanted];
+                const matchesProcess = d => aliases.includes(normalizeProcess(d.proses)) ||
+                    aliases.some(alias => normalizeProcess(d.proses).includes(alias) || alias.includes(normalizeProcess(d.proses)));
+                janData = janData.filter(matchesProcess);
+                compData = compData.filter(matchesProcess);
             }
 
             filteredJanOgosData = janData;
@@ -2086,6 +2108,8 @@
 
         function resetGlobalFilters() {
             document.getElementById('filterBulan').value = 'all';
+            const yearFilter = document.getElementById('filterTahun');
+            if (yearFilter) yearFilter.value = 'all';
             document.getElementById('filterProses').value = 'all';
             const searchInput = document.getElementById('searchTableJanOgos');
             if (searchInput) searchInput.value = '';
@@ -2444,9 +2468,11 @@
                     parts = dateParts(dateCol >= 0 ? row[dateCol] : '');
                 }
 
-                // Penapis tahun/bulan hanya memadankan rekod apabila tarikh berjaya dikenal pasti.
-                if (yearFilter !== 'all' && parts.year !== yearFilter) return false;
-                if (monthFilter !== 'all' && parts.month !== String(Number(monthFilter))) return false;
+                // Jika tarikh rekod tidak tersedia, kekalkan rekod supaya jadual tidak kosong
+                // semata-mata kerana medan tarikh tiada dalam CSV.
+                if (parts.year && yearFilter !== 'all' && parts.year !== yearFilter) return false;
+                if (parts.month && monthFilter !== 'all' && parts.month !== String(Number(monthFilter))) return false;
+                if (!parts.year && !parts.month && (yearFilter !== 'all' || monthFilter !== 'all')) return true;
                 return true;
             });
         }
