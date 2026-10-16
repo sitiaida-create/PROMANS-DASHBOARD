@@ -1963,14 +1963,18 @@
         }
 
         function renderDurationPanels(count7_14, countGt15, totalP) {
-            document.getElementById('kpiCount7_14').innerText = `${count7_14.toLocaleString()} permohonan`;
-            document.getElementById('kpiCountGt15').innerText = `${countGt15.toLocaleString()} permohonan`;
+            const kpiCount7_14 = document.getElementById('kpiCount7_14');
+            if (kpiCount7_14) kpiCount7_14.innerText = `${count7_14.toLocaleString()} permohonan`;
+            const kpiCountGt15 = document.getElementById('kpiCountGt15');
+            if (kpiCountGt15) kpiCountGt15.innerText = `${countGt15.toLocaleString()} permohonan`;
 
             const pct7_14 = totalP > 0 ? ((count7_14 / totalP) * 100).toFixed(1) : '0.0';
             const pctGt15 = totalP > 0 ? ((countGt15 / totalP) * 100).toFixed(1) : '0.0';
 
-            document.getElementById('kpiPct7_14').innerText = `${pct7_14}%`;
-            document.getElementById('kpiPctGt15').innerText = `${pctGt15}%`;
+            const kpiPct7_14 = document.getElementById('kpiPct7_14');
+            if (kpiPct7_14) kpiPct7_14.innerText = `${pct7_14}%`;
+            const kpiPctGt15 = document.getElementById('kpiPctGt15');
+            if (kpiPctGt15) kpiPctGt15.innerText = `${pctGt15}%`;
 
             document.getElementById('badgeSum7_14').innerText = `${count7_14.toLocaleString()} Permohonan (${pct7_14}%)`;
             document.getElementById('badgeSumGt15').innerText = `${countGt15.toLocaleString()} Permohonan (${pctGt15}%)`;
@@ -2052,10 +2056,12 @@
             }
 
             if (list7_14.length > 0) {
-                document.getElementById('kpiTop7_14').innerText = `${list7_14[0].proses} (${list7_14[0].count} permohonan)`;
+                const kpiTop7_14 = document.getElementById('kpiTop7_14');
+                if (kpiTop7_14) kpiTop7_14.innerText = `${list7_14[0].proses} (${list7_14[0].count} permohonan)`;
             }
             if (listGt15.length > 0) {
-                document.getElementById('kpiTopGt15').innerText = `${listGt15[0].proses} (${listGt15[0].count} permohonan)`;
+                const kpiTopGt15 = document.getElementById('kpiTopGt15');
+                if (kpiTopGt15) kpiTopGt15.innerText = `${listGt15[0].proses} (${listGt15[0].count} permohonan)`;
             }
             lucide.createIcons();
         }
