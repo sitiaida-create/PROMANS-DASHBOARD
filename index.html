@@ -2452,13 +2452,29 @@
                     : { year: '', month: '' };
             };
 
+            // Gunakan padanan nama proses dan singkatan yang sama seperti penapis
+            // di bahagian Kecekapan Proses & Semakan.
+            const processAliases = {
+                'aktivitidalamnegara': ['aktivitidalamnegara', 'aktivitidn'],
+                'aktivitiluarnegara': ['aktivitiluarnegara', 'aktivitiln'],
+                'pelantikanraro': ['pelantikanraro', 'aroraro', 'ra', 'ro'],
+                'pelantikangrasra': ['pelantikangrasra', 'rsgspb', 'gra', 'sra'],
+                'tuntutansra': ['tuntutansra', 'claim'],
+                'semakanendreport': ['semakanendreport', 'er', 'endreport'],
+                'semakanprogressreport': ['semakanprogressreport', 'pr', 'progressreport'],
+                'pengaktifangeran': ['pengaktifangeran', 'proposal'],
+                'pertukaranketuaahliprojek': ['pertukaranketuaahliprojek', 'member'],
+                'perlanjutantempoh': ['perlanjutantempoh', 'extension']
+            };
+            const wantedProcess = norm(processFilter);
+            const aliases = (processAliases[wantedProcess] || [wantedProcess]).map(norm);
+
             return rows.filter(row => {
                 const source = sourceCol >= 0 ? String(row[sourceCol] || '').trim() : '';
                 if (processFilter !== 'all') {
-                    // Padanan toleran untuk variasi ejaan/nama proses antara filter dan CSV.
-                    const wanted = norm(processFilter);
                     const actual = norm(source);
-                    if (!actual || !(actual === wanted || actual.includes(wanted) || wanted.includes(actual))) return false;
+                    if (!actual || !(aliases.includes(actual) ||
+                        aliases.some(alias => actual.includes(alias) || alias.includes(actual)))) return false;
                 }
 
                 // Utamakan medan bulan/tarikh permohonan; jika kosong, guna tarikh mula proses.
