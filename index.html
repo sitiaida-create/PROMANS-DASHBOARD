@@ -308,7 +308,7 @@
 
                 <!-- Kad Penunjuk Tempoh Sederhana & Lanjut -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div onclick="openProcessCasesModal('Pelantikan GRA/SRA', '8-14')" class="bg-amber-50/60 hover:bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center justify-between cursor-pointer transition shadow-2xs group" title="Klik untuk melihat permohonan dalam julat 7-14 hari">
+                    <div onclick="openPeriodCasesModal('8-14')" class="bg-amber-50/60 hover:bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center justify-between cursor-pointer transition shadow-2xs group" title="Klik untuk melihat permohonan dalam julat 7-14 hari">
                         <div class="flex items-center space-x-3.5">
                             <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-xs">
                                 <i data-lucide="clock" class="w-5 h-5"></i>
@@ -330,7 +330,7 @@
                         </div>
                     </div>
 
-                    <div onclick="openProcessCasesModal('Semakan End Report', 'gt15')" class="bg-rose-50/70 hover:bg-rose-50 border border-rose-200 p-4 rounded-2xl flex items-center justify-between cursor-pointer transition shadow-2xs group" title="Klik untuk melihat permohonan melebihi 15 hari">
+                    <div onclick="openPeriodCasesModal('gt15')" class="bg-rose-50/70 hover:bg-rose-50 border border-rose-200 p-4 rounded-2xl flex items-center justify-between cursor-pointer transition shadow-2xs group" title="Klik untuk melihat permohonan melebihi 15 hari">
                         <div class="flex items-center space-x-3.5">
                             <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center font-bold shadow-xs">
                                 <i data-lucide="alert-octagon" class="w-5 h-5"></i>
@@ -1278,6 +1278,39 @@
                         logs
                     };
                 });
+        }
+
+        // Paparkan rekod merentas semua proses mengikut kategori tempoh yang dipilih pada kad KPI.
+        function openPeriodCasesModal(period) {
+            const isMedium = period === '8-14';
+            activeModalProcessName = isMedium
+                ? 'Semua Proses — Tempoh Sederhana (7–14 Hari)'
+                : 'Semua Proses — Tempoh Lanjut (>15 Hari)';
+            activeModalPeriodFilter = period;
+
+            const processNames = [...new Set([
+                ...currentJanOgosData.map(item => item.proses),
+                ...rawProcessingRecords.map(row => row.source).filter(Boolean)
+            ])];
+            activeModalCasesList = processNames.flatMap(name => generateCasesForProcess(name));
+
+            document.getElementById('modalProcessTitle').innerText = activeModalProcessName;
+            document.querySelectorAll('#processCasesModal .ppt-column').forEach(el => el.classList.add('hidden'));
+            const totalCount = activeModalCasesList.length;
+            document.getElementById('modalProcessBadge').innerText = rawProcessingRecords.length
+                ? `${totalCount.toLocaleString()} Rekod Data — semua proses`
+                : 'Tiada rekod terperinci dalam CSV';
+
+            document.getElementById('modalCountAll').innerText = totalCount;
+            document.getElementById('modalCount1_7').innerText = activeModalCasesList.filter(c => c.periodCategory === '1-7').length;
+            document.getElementById('modalCount8_14').innerText = activeModalCasesList.filter(c => c.periodCategory === '8-14').length;
+            document.getElementById('modalCountGt15').innerText = activeModalCasesList.filter(c => c.periodCategory === 'gt15').length;
+            document.getElementById('modalCaseSearchInput').value = '';
+            document.getElementById('selectedCaseAuditCard').classList.add('hidden');
+
+            filterModalCasesByPeriod(period);
+            document.getElementById('processCasesModal').classList.remove('hidden');
+            lucide.createIcons();
         }
 
         function openProcessCasesModal(processName, initialPeriod = 'all') {
