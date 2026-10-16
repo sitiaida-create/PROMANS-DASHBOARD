@@ -1589,11 +1589,11 @@
                     'semakanendreport': ['semakanendreport', 'er', 'endreport'],
                     'semakanprogressreport': ['semakanprogressreport', 'pr', 'progressreport'],
                     'pengaktifangeran': ['pengaktifangeran', 'proposal'],
-                    'pertukaranketuaahli projek': ['pertukaranketuaahli projek', 'member'].map(normalizeProcess),
+                    'pertukaranketuaahliprojek': ['pertukaranketuaahli projek', 'member'],
                     'perlanjutantempoh': ['perlanjutantempoh', 'extension']
                 };
                 const wanted = normalizeProcess(prosesVal);
-                const aliases = processAliases[wanted] || [wanted];
+                const aliases = (processAliases[wanted] || [wanted]).map(normalizeProcess);
                 const matchesProcess = d => aliases.includes(normalizeProcess(d.proses)) ||
                     aliases.some(alias => normalizeProcess(d.proses).includes(alias) || alias.includes(normalizeProcess(d.proses)));
                 janData = janData.filter(matchesProcess);
