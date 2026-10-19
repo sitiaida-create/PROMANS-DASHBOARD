@@ -1796,7 +1796,7 @@
             const eligible = records.filter(row => {
                 if (useApprovalDuration) {
                     return String(row.officerName || '').trim() !== '' && Number(row.officerDays) > 0 &&
-                        (!/extension|perlanjutan/i.test(sourceLabel) || /^approved$/i.test(String(row.status || '').trim()));
+                        (!/extension|perlanjutan|proposal|cadangan/i.test(sourceLabel) || /^approved$/i.test(String(row.status || '').trim()));
                 }
                 if (officerOnly) return String(row.officerName || '').trim() !== '' && Number(row.officerDays) > 0;
                 return String(row.clerkName || '').trim() !== '' && Number(row.clerkDays) > 0;
