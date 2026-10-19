@@ -1137,10 +1137,9 @@
             if (!a || !b) return false;
             if (a === b) return true;
 
-            // Setiap proses mempunyai satu kumpulan alias yang digunakan oleh penapis,
-            // data CSV dan paparan butiran. Elakkan padanan singkatan pendek secara substring.
+            // Alias dipadankan secara konsisten untuk label penuh dan singkatan.
             const groups = [
-                ['semakanendreport', 'endreport', 'endreport', 'er'],
+                ['semakanendreport', 'endreport', 'er'],
                 ['semakanprogressreport', 'progressreport', 'pr'],
                 ['perlanjutantempoh', 'perlanjutan', 'extension'],
                 ['aktivitidalamnegara', 'aktivitidn'],
@@ -1148,20 +1147,16 @@
                 ['pelantikanraroro', 'pelantikanraro', 'aroraro', 'aroro', 'ra', 'ro'],
                 ['pelantikangrasra', 'rsgspb', 'gra', 'sra'],
                 ['pengaktifangeran', 'proposal'],
-                ['pertukaranketuaahliprojek', 'pertukaranketuaahli projek', 'member'],
+                ['pertukaranketuaahliprojek', 'member'],
                 ['tuntutansra', 'claim']
             ];
-            const group = groups.find(items => items.includes(a) || items.includes(b));
-            if (group && group.includes(a) && group.includes(b)) return true;
-
-            // Sokong label sumber yang lebih panjang seperti "Semakan End Report (ER)"
-            // tanpa membenarkan singkatan ER/PR padan dengan perkataan lain.
-            const longAliases = groups.flat().filter(alias => alias.length >= 5);
-            return longAliases.some(alias =>
-                (a === alias || a.includes(alias)) && (b === alias || b.includes(alias))
+            const matchesAlias = (label, alias) =>
+                label === alias || (alias.length >= 5 && label.includes(alias));
+            return groups.some(group =>
+                group.some(alias => matchesAlias(a, alias)) &&
+                group.some(alias => matchesAlias(b, alias))
             );
         }
-
         function getGlobalFilterMatchedProcessingRecords(processName = '') {
             const normalize = value => String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
             const yearFilter = document.getElementById('filterTahun')?.value || 'all';
