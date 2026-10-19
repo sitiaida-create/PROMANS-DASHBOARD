@@ -1589,7 +1589,7 @@
             if (rawProcessingRecords.length && (bulanVal !== 'all' || tahunVal !== 'all')) {
                 janData = currentJanOgosData.map(d => {
                     const sourceLabel = String(d.proses || '').toLowerCase();
-                    const officerOnly = /extension|perlanjutan|progress\\s*report|end\\s*report|(^|\\b)(er|pr)(\\b|$)/i.test(sourceLabel);
+                    const officerOnly = /extension|perlanjutan|progress\s*report|end\s*report|(^|\b)(er|pr)(\b|$)/i.test(sourceLabel);
                     const records = getGlobalFilterMatchedProcessingRecords(d.proses);
                     const applications = records.filter(row => {
                         if (officerOnly) return hasValidOfficerName(row.officerName) && Number(row.officerDays) > 0;
