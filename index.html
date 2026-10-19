@@ -1126,6 +1126,11 @@
             return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
         }
 
+        function hasValidOfficerName(value) {
+            const name = String(value ?? '').trim();
+            return name !== '' && name !== '0';
+        }
+
         function processLabelsMatch(left, right) {
             const a = normalizeProcessLabel(left);
             const b = normalizeProcessLabel(right);
@@ -1205,10 +1210,10 @@
                 .filter(row => {
                     if (useApprovalDuration) {
                         const approvalStatusRequired = /extension|perlanjutan|proposal|cadangan/i.test(sourceLabel);
-                        return String(row.officerName || '').trim() !== '' && Number(row.officerDays) > 0 &&
+                        return hasValidOfficerName(row.officerName) && Number(row.officerDays) > 0 &&
                             (!approvalStatusRequired || /^approved$/i.test(String(row.status || '').trim()));
                     }
-                    if (officerOnly) return String(row.officerName || '').trim() !== '' && Number(row.officerDays) > 0;
+                    if (officerOnly) return hasValidOfficerName(row.officerName) && Number(row.officerDays) > 0;
                     return String(row.clerkName || '').trim() !== '' && Number(row.clerkDays) > 0;
                 });
             return eligibleRows.map((row, index) => {
@@ -1244,7 +1249,7 @@
                         month: row.month || '—',
                         daysTaken: days,
                         periodCategory,
-                        currentStage: row.officerName ? 'Peringkat pegawai' : row.clerkName ? 'Peringkat kerani' : 'Peringkat tidak dinyatakan',
+                        currentStage: hasValidOfficerName(row.officerName) ? 'Peringkat pegawai' : row.clerkName ? 'Peringkat kerani' : 'Peringkat tidak dinyatakan',
                         status: row.status || 'Tidak dinyatakan',
                         clerkName: row.clerkName || '—',
                         clerkDays: Number(row.clerkDays) || 0,
@@ -1819,10 +1824,10 @@
             const officerOnly = /extension|perlanjutan|progress\s*report|end\s*report/i.test(sourceLabel);
             const eligible = records.filter(row => {
                 if (useApprovalDuration) {
-                    return String(row.officerName || '').trim() !== '' && Number(row.officerDays) > 0 &&
+                    return hasValidOfficerName(row.officerName) && Number(row.officerDays) > 0 &&
                         (!/extension|perlanjutan|proposal|cadangan/i.test(sourceLabel) || /^approved$/i.test(String(row.status || '').trim()));
                 }
-                if (officerOnly) return String(row.officerName || '').trim() !== '' && Number(row.officerDays) > 0;
+                if (officerOnly) return hasValidOfficerName(row.officerName) && Number(row.officerDays) > 0;
                 return String(row.clerkName || '').trim() !== '' && Number(row.clerkDays) > 0;
             });
             if (eligible.length) {
@@ -2338,7 +2343,7 @@
                                     /end\s*report|progress\s*report/i.test(sourceLabel);
                                 if (isExtension) {
                                     const y = yearOf(row.officerDate);
-                                    if (row.officerName.trim() && row.officerDays > 0) {
+                                    if (hasValidOfficerName(row.officerName) && row.officerDays > 0) {
                                         g.permohonan++;
                                         if (y) g.permohonanByYear[y] = (g.permohonanByYear[y] || 0) + 1;
                                     }
@@ -2347,7 +2352,7 @@
                                         if (y) g.kelulusanByYear[y] = (g.kelulusanByYear[y] || 0) + 1;
                                     }
                                 } else if (isERorPR) {
-                                    if (row.officerName.trim() && row.officerDays > 0) {
+                                    if (hasValidOfficerName(row.officerName) && row.officerDays > 0) {
                                         g.permohonan++;
                                         g.kelulusan++;
                                         const y = yearOf(row.officerDate);
@@ -2364,7 +2369,7 @@
                                     }
                                     const isProposal = /proposal|cadangan/i.test(sourceLabel);
                                     // Proposal dikira sebagai kelulusan hanya jika nama pegawai dan tempoh pegawai wujud serta status tepat Approved.
-                                    if (row.officerName.trim() && row.officerDays > 0 &&
+                                    if (hasValidOfficerName(row.officerName) && row.officerDays > 0 &&
                                         (!isProposal || /^approved$/i.test(String(row.status || '').trim()))) {
                                         g.kelulusan++;
                                         // Kelulusan dikelaskan mengikut tahun permohonan, bukan tahun tindakan pegawai.
