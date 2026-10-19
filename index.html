@@ -1176,19 +1176,11 @@
             const sourceLabel = String(processName || '').toLowerCase();
             const officerOnly = /extension|perlanjutan|progress\s*report|end\s*report/i.test(sourceLabel);
             const useApprovalDuration = (document.getElementById('durationDisplayMode')?.value || 'permohonan') === 'kelulusan';
-            const isProposal = /proposal|cadangan/i.test(sourceLabel);
             const eligibleRows = getGlobalFilterMatchedProcessingRecords(processName)
                 .filter(row => normalize(row.source) === normalize(processName))
                 .filter(row => {
-                    // Modal proses kelulusan Proposal mesti selaras dengan KPI kelulusan:
-                    // hanya rekod Approved yang mempunyai nama pegawai dan tempoh pegawai sah.
-                    if (isProposal) {
-                        return /^approved$/i.test(String(row.status || '').trim()) &&
-                            String(row.officerName || '').trim() !== '' &&
-                            Number(row.officerDays) > 0;
-                    }
                     if (useApprovalDuration) {
-                        const approvalStatusRequired = /extension|perlanjutan/i.test(sourceLabel);
+                        const approvalStatusRequired = /extension|perlanjutan|proposal|cadangan/i.test(sourceLabel);
                         return String(row.officerName || '').trim() !== '' && Number(row.officerDays) > 0 &&
                             (!approvalStatusRequired || /^approved$/i.test(String(row.status || '').trim()));
                     }
@@ -1196,7 +1188,7 @@
                     return String(row.clerkName || '').trim() !== '' && Number(row.clerkDays) > 0;
                 });
             return eligibleRows.map((row, index) => {
-                    const days = Number(isProposal || useApprovalDuration || officerOnly ? row.officerDays : row.clerkDays) || 0;
+                    const days = Number(useApprovalDuration || officerOnly ? row.officerDays : row.clerkDays) || 0;
                     const periodCategory = days >= 1 && days <= 7 ? '1-7' :
                         days >= 8 && days <= 14 ? '8-14' :
                         days > 14 ? 'gt15' : 'unknown';
