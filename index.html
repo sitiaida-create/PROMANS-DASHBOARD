@@ -1122,6 +1122,30 @@
         let activeModalCasesList = [];
         let rawProcessingRecords = [];
 
+        function normalizeProcessLabel(value) {
+            return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        }
+
+        function processLabelsMatch(left, right) {
+            const a = normalizeProcessLabel(left);
+            const b = normalizeProcessLabel(right);
+            if (!a || !b) return false;
+            if (a === b) return true;
+            const groups = [
+                ['semakanendreport', 'endreport', 'er'],
+                ['semakanprogressreport', 'progressreport', 'pr'],
+                ['perlanjutantempoh', 'perlanjutan', 'extension'],
+                ['aktivitidalamnegara', 'aktivitidn'],
+                ['aktivitiluarnegara', 'aktivitiln'],
+                ['pelantikanraroro', 'pelantikanraro', 'aroro', 'ra', 'ro'],
+                ['pelantikangrasra', 'rsgspb', 'gra', 'sra'],
+                ['pengaktifangeran', 'proposal'],
+                ['pertukaranketuaahliprojek', 'member'],
+                ['tuntutansra', 'claim']
+            ];
+            return groups.some(group => group.includes(a) && group.includes(b));
+        }
+
         function getGlobalFilterMatchedProcessingRecords(processName = '') {
             const normalize = value => String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
             const yearFilter = document.getElementById('filterTahun')?.value || 'all';
@@ -1163,7 +1187,7 @@
             };
 
             return rawProcessingRecords.filter(row => {
-                if (wantedProcess && wantedProcess !== 'all' && normalize(row.source) !== normalize(wantedProcess)) return false;
+                if (wantedProcess && wantedProcess !== 'all' && !processLabelsMatch(row.source, wantedProcess)) return false;
                 const parts = getApplicationDateParts(row);
                 if (yearFilter !== 'all' && parts.year !== yearFilter) return false;
                 if (monthFilter !== 'all' && parts.month !== String(Number(monthFilter))) return false;
@@ -1174,10 +1198,10 @@
         function generateCasesForProcess(processName) {
             const normalize = value => String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
             const sourceLabel = String(processName || '').toLowerCase();
-            const officerOnly = /extension|perlanjutan|progress\s*report|end\s*report/i.test(sourceLabel);
+            const officerOnly = /extension|perlanjutan|progress\s*report|end\s*report|(^|\b)(er|pr)(\b|$)/i.test(sourceLabel);
             const useApprovalDuration = (document.getElementById('durationDisplayMode')?.value || 'permohonan') === 'kelulusan';
             const eligibleRows = getGlobalFilterMatchedProcessingRecords(processName)
-                .filter(row => normalize(row.source) === normalize(processName))
+                .filter(row => processLabelsMatch(row.source, processName))
                 .filter(row => {
                     if (useApprovalDuration) {
                         const approvalStatusRequired = /extension|perlanjutan|proposal|cadangan/i.test(sourceLabel);
