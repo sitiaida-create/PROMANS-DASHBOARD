@@ -1584,6 +1584,34 @@
                 };
             });
 
+            // Jika CSV menyediakan rekod mentah, penapis bulan/tahun mesti mengira
+            // rekod sebenar yang sama seperti popup, bukan anggaran berdasarkan monthlyWeights.
+            if (rawProcessingRecords.length && (bulanVal !== 'all' || tahunVal !== 'all')) {
+                janData = currentJanOgosData.map(d => {
+                    const sourceLabel = String(d.proses || '').toLowerCase();
+                    const officerOnly = /extension|perlanjutan|progress\\s*report|end\\s*report|(^|\\b)(er|pr)(\\b|$)/i.test(sourceLabel);
+                    const records = getGlobalFilterMatchedProcessingRecords(d.proses);
+                    const applications = records.filter(row => {
+                        if (officerOnly) return hasValidOfficerName(row.officerName) && Number(row.officerDays) > 0;
+                        return String(row.clerkName || '').trim() !== '' && Number(row.clerkDays) > 0;
+                    });
+                    const approvals = records.filter(row => {
+                        const isProposal = processLabelsMatch(d.proses, 'proposal');
+                        const isExtension = /extension|perlanjutan/i.test(sourceLabel);
+                        return hasValidOfficerName(row.officerName) && Number(row.officerDays) > 0 &&
+                            (!(isProposal || isExtension) || /^approved$/i.test(String(row.status || '').trim()));
+                    });
+                    const p = applications.length;
+                    const k = approvals.length;
+                    return {
+                        ...d,
+                        permohonan: p,
+                        kelulusan: k,
+                        pctKelulusan: p > 0 ? Math.min(100, Math.round(k / p * 100)) : 0
+                    };
+                });
+            }
+
             let compData = currentComparisonData.map(d => {
                 const p11 = bulanVal === 'all' ? d.p11 : Math.round(d.p11 * weight);
                 const k11 = bulanVal === 'all' ? d.k11 : Math.round(d.k11 * weight);
