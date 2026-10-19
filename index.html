@@ -2269,13 +2269,20 @@
                     // Kenal pasti CSV rekod mentah secara fleksibel. Sesetengah versi sumber tidak mempunyai
                     // record_id atau total_processing_days; jika medan rekod, status dan medan tindakan wujud,
                     // jangan tersalah anggap data itu sebagai jadual rumusan yang boleh menimpa kiraan.
-                    const hasCalculationSchema = has('source') && has('status') && (
-                        (has('record_id', 'record id') &&
+                    // Kenal pasti skema rekod mentah termasuk tajuk kolum Bahasa Melayu yang lazim.
+                    // Jika nama kolum "Nama Pegawai"/"Tempoh Pegawai" digunakan, data masih perlu
+                    // masuk laluan pengiraan rekod mentah dan bukan jadual rumusan statik.
+                    const hasSourceField = has('source', 'sumber', 'proses', 'nama proses', 'kategori proses');
+                    const hasStatusField = has('status', 'status permohonan', 'status terkini');
+                    const hasOfficerField = has('pegawai_name', 'pegawai name', 'nama pegawai', 'pegawai');
+                    const hasOfficerDurationField = has('tempoh_pegawai', 'tempoh pegawai', 'tempoh pegawai (hari)', 'hari pegawai');
+                    const hasClerkField = has('kerani_name', 'kerani name', 'nama kerani', 'kerani');
+                    const hasClerkDurationField = has('tempoh_kerani', 'tempoh kerani', 'tempoh kerani (hari)', 'hari kerani');
+                    const hasCalculationSchema = hasSourceField && hasStatusField && (
+                        (has('record_id', 'record id', 'id rekod') &&
                          has('total_processing_days', 'total processing days', 'jumlah hari pemprosesan')) ||
-                        (has('pegawai_name', 'pegawai name') &&
-                         has('tempoh_pegawai', 'tempoh pegawai')) ||
-                        (has('kerani_name', 'kerani name') &&
-                         has('tempoh_kerani', 'tempoh kerani'))
+                        (hasOfficerField && hasOfficerDurationField) ||
+                        (hasClerkField && hasClerkDurationField)
                     );
 
                     if (hasCalculationSchema) {
@@ -2298,7 +2305,7 @@
                         };
 
                         const calcRows = dataRows.map(row => ({
-                            source: getFirst(row, ['source']),
+                            source: getFirst(row, ['source', 'sumber', 'proses', 'nama proses', 'kategori proses']),
                             month: getFirst(row, ['month', 'bulan']),
                             clerkDate: getFirst(row, ['kerani_start_date', 'kerani start date', 'tarikh_terima', 'tarikh terima']),
                             clerkReceivedDate: getFirst(row, ['kerani_start_date', 'kerani start date']),
@@ -2306,14 +2313,14 @@
                             officerDate: getFirst(row, ['pegawai_start_date', 'pegawai start date']),
                             officerApprovalDate: getFirst(row, ['pegawai_end_date', 'pegawai end date']),
                             ref: getFirst(row, ['record_id', 'record id']),
-                            clerkName: getFirst(row, ['kerani_name', 'kerani name']),
-                            clerkDays: num(row, 'tempoh_kerani', 'tempoh kerani'),
+                            clerkName: getFirst(row, ['kerani_name', 'kerani name', 'nama kerani']),
+                            clerkDays: num(row, 'tempoh_kerani', 'tempoh kerani', 'tempoh kerani (hari)', 'hari kerani'),
                             pptName: getExactField(row, ['ppt_name', 'ppt name', 'nama_ppt', 'nama ppt', 'ppt']),
                             pptDays: getExactNumber(row, ['tempoh_ppt', 'tempoh ppt', 'ppt_days', 'ppt days']),
-                            officerName: getFirst(row, ['pegawai_name', 'pegawai name']),
-                            officerDays: num(row, 'tempoh_pegawai', 'tempoh pegawai'),
+                            officerName: getFirst(row, ['pegawai_name', 'pegawai name', 'nama pegawai']),
+                            officerDays: num(row, 'tempoh_pegawai', 'tempoh pegawai', 'tempoh pegawai (hari)', 'hari pegawai'),
                             totalDays: num(row, 'total_processing_days', 'total processing days', 'jumlah hari pemprosesan'),
-                            status: getFirst(row, ['status']) || 'Draft'
+                            status: getFirst(row, ['status', 'status permohonan', 'status terkini']) || 'Draft'
                         })).filter(row => row.source || row.ref).map(row => {
                             // Extension/Perlanjutan, Progress Report dan End Report hanya melalui semakan pegawai.
                             if (/extension|perlanjutan|progress\s*report|end\s*report/i.test(String(row.source || ''))) {
