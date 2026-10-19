@@ -1209,7 +1209,7 @@
                 .filter(row => processLabelsMatch(row.source, processName))
                 .filter(row => {
                     if (useApprovalDuration) {
-                        const approvalStatusRequired = /extension|perlanjutan|proposal|cadangan/i.test(sourceLabel);
+                        const approvalStatusRequired = /extension|perlanjutan/i.test(sourceLabel) || processLabelsMatch(sourceLabel, 'proposal');
                         return hasValidOfficerName(row.officerName) && Number(row.officerDays) > 0 &&
                             (!approvalStatusRequired || /^approved$/i.test(String(row.status || '').trim()));
                     }
@@ -1825,7 +1825,7 @@
             const eligible = records.filter(row => {
                 if (useApprovalDuration) {
                     return hasValidOfficerName(row.officerName) && Number(row.officerDays) > 0 &&
-                        (!/extension|perlanjutan|proposal|cadangan/i.test(sourceLabel) || /^approved$/i.test(String(row.status || '').trim()));
+                        ((!/extension|perlanjutan/i.test(sourceLabel) && !processLabelsMatch(sourceLabel, 'proposal')) || /^approved$/i.test(String(row.status || '').trim()));
                 }
                 if (officerOnly) return hasValidOfficerName(row.officerName) && Number(row.officerDays) > 0;
                 return String(row.clerkName || '').trim() !== '' && Number(row.clerkDays) > 0;
@@ -2367,7 +2367,7 @@
                                         const y = yearOf(row.clerkDate);
                                         if (y) g.permohonanByYear[y] = (g.permohonanByYear[y] || 0) + 1;
                                     }
-                                    const isProposal = /proposal|cadangan/i.test(sourceLabel);
+                                    const isProposal = processLabelsMatch(sourceLabel, 'proposal');
                                     // Proposal dikira sebagai kelulusan hanya jika nama pegawai dan tempoh pegawai wujud serta status tepat Approved.
                                     if (hasValidOfficerName(row.officerName) && row.officerDays > 0 &&
                                         (!isProposal || /^approved$/i.test(String(row.status || '').trim()))) {
