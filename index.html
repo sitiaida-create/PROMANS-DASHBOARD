@@ -1136,19 +1136,30 @@
             const b = normalizeProcessLabel(right);
             if (!a || !b) return false;
             if (a === b) return true;
+
+            // Setiap proses mempunyai satu kumpulan alias yang digunakan oleh penapis,
+            // data CSV dan paparan butiran. Elakkan padanan singkatan pendek secara substring.
             const groups = [
-                ['semakanendreport', 'endreport', 'er'],
+                ['semakanendreport', 'endreport', 'endreport', 'er'],
                 ['semakanprogressreport', 'progressreport', 'pr'],
                 ['perlanjutantempoh', 'perlanjutan', 'extension'],
                 ['aktivitidalamnegara', 'aktivitidn'],
                 ['aktivitiluarnegara', 'aktivitiln'],
-                ['pelantikanraroro', 'pelantikanraro', 'aroro', 'ra', 'ro'],
+                ['pelantikanraroro', 'pelantikanraro', 'aroraro', 'aroro', 'ra', 'ro'],
                 ['pelantikangrasra', 'rsgspb', 'gra', 'sra'],
                 ['pengaktifangeran', 'proposal'],
-                ['pertukaranketuaahliprojek', 'member'],
+                ['pertukaranketuaahliprojek', 'pertukaranketuaahli projek', 'member'],
                 ['tuntutansra', 'claim']
             ];
-            return groups.some(group => group.includes(a) && group.includes(b));
+            const group = groups.find(items => items.includes(a) || items.includes(b));
+            if (group && group.includes(a) && group.includes(b)) return true;
+
+            // Sokong label sumber yang lebih panjang seperti "Semakan End Report (ER)"
+            // tanpa membenarkan singkatan ER/PR padan dengan perkataan lain.
+            const longAliases = groups.flat().filter(alias => alias.length >= 5);
+            return longAliases.some(alias =>
+                (a === alias || a.includes(alias)) && (b === alias || b.includes(alias))
+            );
         }
 
         function getGlobalFilterMatchedProcessingRecords(processName = '') {
