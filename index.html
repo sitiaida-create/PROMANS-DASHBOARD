@@ -1614,10 +1614,10 @@
                     'pertukaranketuaahliprojek': ['pertukaranketuaahli projek', 'member'],
                     'perlanjutantempoh': ['perlanjutantempoh', 'extension']
                 };
-                const wanted = normalizeProcess(prosesVal);
-                const aliases = (processAliases[wanted] || [wanted]).map(normalizeProcess);
-                const matchesProcess = d => aliases.includes(normalizeProcess(d.proses)) ||
-                    aliases.some(alias => normalizeProcess(d.proses).includes(alias) || alias.includes(normalizeProcess(d.proses)));
+                // Gunakan kumpulan alias proses yang sama seperti jadual butiran.
+                // Jangan guna substring untuk alias pendek seperti "ra"/"ro" kerana
+                // perkataan "Pengaktifan Geran" turut mengandungi "ra".
+                const matchesProcess = d => processLabelsMatch(d.proses, prosesVal);
                 janData = janData.filter(matchesProcess);
                 compData = compData.filter(matchesProcess);
             }
