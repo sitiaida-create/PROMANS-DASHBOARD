@@ -1180,8 +1180,9 @@
                 .filter(row => normalize(row.source) === normalize(processName))
                 .filter(row => {
                     if (useApprovalDuration) {
+                        const approvalStatusRequired = /extension|perlanjutan|proposal|cadangan/i.test(sourceLabel);
                         return String(row.officerName || '').trim() !== '' && Number(row.officerDays) > 0 &&
-                            (!/extension|perlanjutan/i.test(sourceLabel) || /^approved$/i.test(String(row.status || '').trim()));
+                            (!approvalStatusRequired || /^approved$/i.test(String(row.status || '').trim()));
                     }
                     if (officerOnly) return String(row.officerName || '').trim() !== '' && Number(row.officerDays) > 0;
                     return String(row.clerkName || '').trim() !== '' && Number(row.clerkDays) > 0;
@@ -2337,10 +2338,12 @@
                                         const y = yearOf(row.clerkDate);
                                         if (y) g.permohonanByYear[y] = (g.permohonanByYear[y] || 0) + 1;
                                     }
-                                    if (row.officerName.trim() && row.officerDays > 0) {
+                                    const isProposal = /proposal|cadangan/i.test(sourceLabel);
+                                    // Proposal dikira sebagai kelulusan hanya jika nama pegawai dan tempoh pegawai wujud serta status tepat Approved.
+                                    if (row.officerName.trim() && row.officerDays > 0 &&
+                                        (!isProposal || /^approved$/i.test(String(row.status || '').trim()))) {
                                         g.kelulusan++;
                                         // Kelulusan dikelaskan mengikut tahun permohonan, bukan tahun tindakan pegawai.
-                                        const isProposal = /proposal|cadangan/i.test(sourceLabel);
                                         // Proposal dikira mengikut tarikh permohonan diterima, bukan tarikh kelulusan.
                                         const applicationDate = isProposal
                                             ? (row.clerkReceivedDate || row.clerkDate || row.month || row.officerDate)
