@@ -2384,9 +2384,11 @@
 
                     // Skema Jadual Rumusan
                     const processCol = has('proses', 'nama proses', 'kategori proses', 'process') ? ['proses', 'nama proses', 'kategori proses', 'process'] : null;
-                    const appCol = has('permohonan', 'jumlah permohonan', 'bilangan permohonan', 'applications', 'jumlah') ? ['permohonan', 'jumlah permohonan', 'bilangan permohonan', 'applications', 'jumlah'] : null;
+                    const appCol = has('permohonan', 'jumlah permohonan', 'bilangan permohonan', 'applications') ? ['permohonan', 'jumlah permohonan', 'bilangan permohonan', 'applications'] : null;
 
-                    if (processCol && appCol && (has('kelulusan', 'diluluskan', 'approved', 'jumlah kelulusan') || has('d1_7', '1-7 hari', '1 hingga 7 hari'))) {
+                    // Jika CSV mengandungi rekod mentah CALCULATION, jangan timpa kiraan berasaskan rekod dengan ringkasan/template.
+                    // Elakkan alias umum 'jumlah' daripada mengenal pasti 'jumlah hari pemprosesan' sebagai jumlah permohonan.
+                    if (!hasCalculationSchema && processCol && appCol && (has('kelulusan', 'diluluskan', 'approved', 'jumlah kelulusan') || has('d1_7', '1-7 hari', '1 hingga 7 hari'))) {
                         const mapped = dataRows.map(row => ({
                             proses: val(row, ...processCol),
                             permohonan: num(row, ...appCol),
