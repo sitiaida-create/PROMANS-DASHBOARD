@@ -2266,9 +2266,17 @@
                     let updatedSections = [];
 
                     // Skema Pengiraan Rekod Mentah
-                    const hasCalculationSchema = has('source') && has('record_id', 'record id') &&
-                        has('total_processing_days', 'total processing days', 'jumlah hari pemprosesan') &&
-                        has('status');
+                    // Kenal pasti CSV rekod mentah secara fleksibel. Sesetengah versi sumber tidak mempunyai
+                    // record_id atau total_processing_days; jika medan rekod, status dan medan tindakan wujud,
+                    // jangan tersalah anggap data itu sebagai jadual rumusan yang boleh menimpa kiraan.
+                    const hasCalculationSchema = has('source') && has('status') && (
+                        (has('record_id', 'record id') &&
+                         has('total_processing_days', 'total processing days', 'jumlah hari pemprosesan')) ||
+                        (has('pegawai_name', 'pegawai name') &&
+                         has('tempoh_pegawai', 'tempoh pegawai')) ||
+                        (has('kerani_name', 'kerani name') &&
+                         has('tempoh_kerani', 'tempoh kerani'))
+                    );
 
                     if (hasCalculationSchema) {
                         const getFirst = (row, aliases) => {
