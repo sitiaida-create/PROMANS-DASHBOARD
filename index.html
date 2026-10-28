@@ -506,7 +506,7 @@
                     Gunakan penapis Tahun dan Bulan di bahagian atas dashboard. Analisis ini menggabungkan semua siri dan tidak terikat pada penapis Jenis Proses.
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                     <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
                         <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Jumlah Proses Staf</p>
                         <p id="staffPerfTotal" class="text-2xl font-extrabold text-slate-900 mt-2">0</p>
@@ -514,6 +514,14 @@
                     <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
                         <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Staf Terlibat</p>
                         <p id="staffPerfCount" class="text-2xl font-extrabold text-slate-900 mt-2">0</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Jumlah Pegawai</p>
+                        <p id="staffPerfOfficerCount" class="text-2xl font-extrabold text-slate-900 mt-2">0</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Jumlah Kerani</p>
+                        <p id="staffPerfClerkCount" class="text-2xl font-extrabold text-slate-900 mt-2">0</p>
                     </div>
                 </div>
 
@@ -1874,6 +1882,8 @@
             };
             setText('staffPerfTotal', sum('total'));
             setText('staffPerfCount', staffRows.length);
+            setText('staffPerfOfficerCount', staffRows.filter(staff => staff.role === 'Pegawai').length);
+            setText('staffPerfClerkCount', staffRows.filter(staff => staff.role === 'Kerani').length);
 
             body.innerHTML = '';
             const tableCount = document.getElementById('staffPerfTableCount');
