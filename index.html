@@ -2001,9 +2001,9 @@
                     const personKey = String(person.name || '').trim().toLowerCase().replace(/\\s+/g, ' ');
                     const days = Number(person.days) || 0;
                     if (personKey !== targetKey || person.role !== role || !personKey || personKey === '0' || days <= 0) return;
-                    const dedupeKey = row.ref
-                        ? [String(row.ref).trim().toLowerCase(), def.key, personKey, person.role.toLowerCase()].join('|')
-                        : 'row-' + rowIndex + '|' + def.key + '|' + personKey + '|' + person.role.toLowerCase();
+                    // Elakkan kiraan berganda hanya dalam rekod baris yang sama.
+                    // Jangan gugurkan rekod berasingan yang kebetulan berkongsi row.ref.
+                    const dedupeKey = 'row-' + rowIndex + '|' + def.key + '|' + personKey + '|' + person.role.toLowerCase();
                     if (seenRecordStaff.has(dedupeKey)) return;
                     seenRecordStaff.add(dedupeKey);
                     if (!summary.has(def.key)) summary.set(def.key, { process: def.label, d1_7: 0, d8_14: 0, dgt15: 0, total: 0 });
