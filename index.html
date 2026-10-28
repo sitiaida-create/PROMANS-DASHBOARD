@@ -1968,16 +1968,16 @@
 
             const normalize = value => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
             const processDefs = [
-                { key: 'dn', label: 'Aktiviti DN', aliases: ['aktivitidalamnegara', 'aktivitidn', 'dn'] },
-                { key: 'ln', label: 'Aktiviti LN', aliases: ['aktivitiluarnegara', 'aktivitiln', 'ln'] },
-                { key: 'aroraro', label: 'ARORARO', aliases: ['aroraro', 'aroro', 'pelantikanraroro', 'pelantikanraro', 'raro'] },
-                { key: 'rsgspb', label: 'RSGSPB', aliases: ['rsgspb', 'pelantikangrasra'] },
-                { key: 'claim', label: 'CLAIM', aliases: ['claim', 'tuntutansra'] },
-                { key: 'er', label: 'ER', aliases: ['semakanendreport', 'endreport', 'er'] },
-                { key: 'pr', label: 'PR', aliases: ['semakanprogressreport', 'progressreport', 'pr'] },
-                { key: 'proposal', label: 'PROPOSAL', aliases: ['pengaktifangeran', 'proposal'] },
-                { key: 'member', label: 'MEMBER', aliases: ['pertukaranketuaahliprojek', 'member'] },
-                { key: 'extension', label: 'EXTENSION', aliases: ['perlanjutantempoh', 'perlanjutan', 'extension'] }
+                { key: 'dn', label: 'Aktiviti Dalam Negara', aliases: ['aktivitidalamnegara', 'aktivitidn', 'dn'] },
+                { key: 'ln', label: 'Aktiviti Luar Negara', aliases: ['aktivitiluarnegara', 'aktivitiln', 'ln'] },
+                { key: 'aroraro', label: 'Pelantikan RA/RO', aliases: ['aroraro', 'aroro', 'pelantikanraroro', 'pelantikanraro', 'raro'] },
+                { key: 'rsgspb', label: 'Pelantikan GRA/SRA', aliases: ['rsgspb', 'pelantikangrasra'] },
+                { key: 'claim', label: 'Tuntutan SRA', aliases: ['claim', 'tuntutansra'] },
+                { key: 'er', label: 'Semakan End Report', aliases: ['semakanendreport', 'endreport', 'er'] },
+                { key: 'pr', label: 'Semakan Progress Report', aliases: ['semakanprogressreport', 'progressreport', 'pr'] },
+                { key: 'proposal', label: 'Pengaktifan Geran', aliases: ['pengaktifangeran', 'proposal'] },
+                { key: 'member', label: 'Pertukaran Ketua/Ahli Projek', aliases: ['pertukaranketuaahliprojek', 'member'] },
+                { key: 'extension', label: 'Pelanjutan Tempoh', aliases: ['perlanjutantempoh', 'perlanjutan', 'extension'] }
             ];
             const findProcess = source => {
                 const label = normalize(source);
