@@ -2255,7 +2255,26 @@
                 p2: denominator ? c2 / denominator * 100 : 0, p3: denominator ? c3 / denominator * 100 : 0 };
         }
 
-        // Nama paparan sahaja; nilai proses asal dikekalkan untuk penapisan dan pengiraan.\n        function getProcessDisplayName(source) {\n            const normalized = String(source || '').toLowerCase().replace(/[^a-z0-9]/g, '');\n            const displayNames = [\n                { label: 'Aktiviti Dalam Negara', aliases: ['aktivitidalamnegara', 'aktivitidn'] },\n                { label: 'Aktiviti Luar Negara', aliases: ['aktivitiluarnegara', 'aktivitiln'] },\n                { label: 'Pelantikan RA/RO', aliases: ['aroraro', 'pelantikanraro', 'pelantikanraroro'] },\n                { label: 'Pelantikan GRA/SRA', aliases: ['rsgspb', 'pelantikangrasra'] },\n                { label: 'Tuntutan SRA', aliases: ['claim', 'tuntutansra'] },\n                { label: 'Semakan End Report', aliases: ['semakanendreport', 'endreport', 'er'] },\n                { label: 'Semakan Progress Report', aliases: ['semakanprogressreport', 'progressreport', 'pr'] },\n                { label: 'Pengaktifan Geran', aliases: ['pengaktifangeran', 'proposal'] },\n                { label: 'Pertukaran Ketua/Ahli Projek', aliases: ['pertukaranketuaahliprojek', 'member'] },\n                { label: 'Pelanjutan Tempoh', aliases: ['perlanjutantempoh', 'pelanjutantempoh', 'extension'] }\n            ];\n            const match = displayNames.find(item => item.aliases.some(alias => normalized === alias || (alias.length >= 5 && normalized.includes(alias))));\n            return match ? match.label : String(source || '');\n        }\n\n        function populateTables() {
+        // Nama paparan sahaja; nilai proses asal dikekalkan untuk penapisan dan pengiraan.
+        function getProcessDisplayName(source) {
+            const normalized = String(source || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const displayNames = [
+                { label: 'Aktiviti Dalam Negara', aliases: ['aktivitidalamnegara', 'aktivitidn'] },
+                { label: 'Aktiviti Luar Negara', aliases: ['aktivitiluarnegara', 'aktivitiln'] },
+                { label: 'Pelantikan RA/RO', aliases: ['aroraro', 'pelantikanraro', 'pelantikanraroro'] },
+                { label: 'Pelantikan GRA/SRA', aliases: ['rsgspb', 'pelantikangrasra'] },
+                { label: 'Tuntutan SRA', aliases: ['claim', 'tuntutansra'] },
+                { label: 'Semakan End Report', aliases: ['semakanendreport', 'endreport', 'er'] },
+                { label: 'Semakan Progress Report', aliases: ['semakanprogressreport', 'progressreport', 'pr'] },
+                { label: 'Pengaktifan Geran', aliases: ['pengaktifangeran', 'proposal'] },
+                { label: 'Pertukaran Ketua/Ahli Projek', aliases: ['pertukaranketuaahliprojek', 'member'] },
+                { label: 'Pelanjutan Tempoh', aliases: ['perlanjutantempoh', 'pelanjutantempoh', 'extension'] }
+            ];
+            const match = displayNames.find(item => item.aliases.some(alias => normalized === alias || (alias.length >= 5 && normalized.includes(alias))));
+            return match ? match.label : String(source || '');
+        }
+
+        function populateTables() {
             // 1. Jadual Helaian 1: Kecekapan
             const tBodyJan = document.getElementById('janOgosTableBody');
             tBodyJan.innerHTML = '';
