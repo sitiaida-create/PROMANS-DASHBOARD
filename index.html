@@ -546,7 +546,7 @@
                     <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <div>
                             <h3 class="text-sm font-bold text-slate-900">Pecahan Proses Mengikut Staf dan Peranan</h3>
-                            <p class="text-xs text-slate-500 mt-1">Kiraan ER dan PR diasingkan mengikut peringkat Kerani/Pegawai; Extension dikira untuk Pegawai sahaja. Nama yang sama dalam peranan berbeza dipaparkan berasingan.</p>
+                            <p class="text-xs text-slate-500 mt-1">Kiraan setiap proses dipaparkan pada baris staf mengikut peranan Kerani atau Pegawai. Extension dikira untuk Pegawai sahaja; nama yang sama dalam peranan berbeza dipaparkan berasingan.</p>
                         </div>
                         <span id="staffPerfTableCount" class="text-xs font-semibold text-slate-500">0 staf</span>
                     </div>
@@ -557,11 +557,16 @@
                                     <th class="py-3 px-4 font-bold">Ranking</th>
                                     <th class="py-3 px-4 font-bold">Nama Staf</th>
                                     <th class="py-3 px-4 font-bold">Peranan</th>
-                                    <th class="py-3 px-4 text-right font-bold">ER Kerani</th>
-                                    <th class="py-3 px-4 text-right font-bold">ER Pegawai</th>
-                                    <th class="py-3 px-4 text-right font-bold">PR Kerani</th>
-                                    <th class="py-3 px-4 text-right font-bold">PR Pegawai</th>
-                                    <th class="py-3 px-4 text-right font-bold">Extension Pegawai</th>
+                                    <th class="py-3 px-4 text-right font-bold">Aktiviti DN</th>
+                                    <th class="py-3 px-4 text-right font-bold">Aktiviti LN</th>
+                                    <th class="py-3 px-4 text-right font-bold">ARORARO</th>
+                                    <th class="py-3 px-4 text-right font-bold">RSGSPB</th>
+                                    <th class="py-3 px-4 text-right font-bold">CLAIM</th>
+                                    <th class="py-3 px-4 text-right font-bold">ER</th>
+                                    <th class="py-3 px-4 text-right font-bold">PR</th>
+                                    <th class="py-3 px-4 text-right font-bold">PROPOSAL</th>
+                                    <th class="py-3 px-4 text-right font-bold">MEMBER</th>
+                                    <th class="py-3 px-4 text-right font-bold">EXTENSION</th>
                                     <th class="py-3 px-4 text-right font-bold bg-rose-50">Jumlah</th>
                                     <th class="py-3 px-4 text-right font-bold bg-blue-50">1–7 hari</th>
                                     <th class="py-3 px-4 text-right font-bold bg-amber-50">8–14 hari</th>
@@ -569,7 +574,7 @@
                                 </tr>
                             </thead>
                             <tbody id="staffPerfTableBody" class="divide-y divide-slate-100">
-                                <tr><td colspan="12" class="py-8 text-center text-slate-400">Memuatkan data...</td></tr>
+                                <tr><td colspan="17" class="py-8 text-center text-slate-400">Memuatkan data...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -1787,13 +1792,22 @@
             const records = getGlobalFilterMatchedProcessingRecords('all', rawStaffPerformanceRecords);
             const staffMap = new Map();
             const seenRecordStaff = new Set();
-
+            const processDefs = [
+                { key: 'dn', label: 'Aktiviti DN', aliases: ['aktivitidalamnegara', 'aktivitidn', 'dn'] },
+                { key: 'ln', label: 'Aktiviti LN', aliases: ['aktivitiluarnegara', 'aktivitiln', 'ln'] },
+                { key: 'aroraro', label: 'ARORARO', aliases: ['aroraro', 'aroro', 'pelantikanraroro', 'pelantikanraro', 'raro'] },
+                { key: 'rsgspb', label: 'RSGSPB', aliases: ['rsgspb', 'pelantikangrasra'] },
+                { key: 'claim', label: 'CLAIM', aliases: ['claim', 'tuntutansra'] },
+                { key: 'er', label: 'ER', aliases: ['semakanendreport', 'endreport', 'er'] },
+                { key: 'pr', label: 'PR', aliases: ['semakanprogressreport', 'progressreport', 'pr'] },
+                { key: 'proposal', label: 'PROPOSAL', aliases: ['pengaktifangeran', 'proposal'] },
+                { key: 'member', label: 'MEMBER', aliases: ['pertukaranketuaahliprojek', 'member'] },
+                { key: 'extension', label: 'EXTENSION', aliases: ['perlanjutantempoh', 'perlanjutan', 'extension'] }
+            ];
+            const normalize = value => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
             const processType = source => {
-                const label = String(source || '').trim();
-                if (/extension|perlanjutan/i.test(label)) return 'extension';
-                if (/progress\s*report|(^|\b)pr(\b|$)/i.test(label)) return 'pr';
-                if (/end\s*report|(^|\b)er(\b|$)/i.test(label)) return 'er';
-                return '';
+                const label = normalize(source);
+                return processDefs.find(def => def.aliases.some(alias => label === alias || (alias.length >= 5 && label.includes(alias))))?.key || '';
             };
 
             const addStaffProcess = (row, rowIndex, type, staffNameValue, role, daysValue) => {
@@ -1803,19 +1817,18 @@
                 if (roleFilter === 'kerani' && role !== 'Kerani') return;
                 if (roleFilter === 'pegawai' && role !== 'Pegawai') return;
 
-                const staffKey = staffName.toLowerCase().replace(/\s+/g, ' ');
+                const staffKey = staffName.toLowerCase().replace(/\\s+/g, ' ');
                 const dedupeKey = row.ref
                     ? [String(row.ref).trim().toLowerCase(), type, staffKey, role.toLowerCase()].join('|')
-                    : 'row-' + rowIndex + '|' + role.toLowerCase();
+                    : 'row-' + rowIndex + '|' + type + '|' + staffKey + '|' + role.toLowerCase();
                 if (seenRecordStaff.has(dedupeKey)) return;
                 seenRecordStaff.add(dedupeKey);
 
                 const mapKey = role.toLowerCase() + '|' + staffKey;
                 if (!staffMap.has(mapKey)) {
-                    staffMap.set(mapKey, {
-                        name: staffName, role, er: 0, pr: 0, extension: 0,
-                        total: 0, d1_7: 0, d8_14: 0, dgt15: 0
-                    });
+                    const counts = {};
+                    processDefs.forEach(def => counts[def.key] = 0);
+                    staffMap.set(mapKey, { name: staffName, role, ...counts, total: 0, d1_7: 0, d8_14: 0, dgt15: 0 });
                 }
                 const staff = staffMap.get(mapKey);
                 staff.total++;
@@ -1828,18 +1841,14 @@
             records.forEach((row, rowIndex) => {
                 const type = processType(row.source);
                 if (!type) return;
-
-                // ER/PR dikira pada peringkat kerani jika maklumat tindakan kerani sah.
-                // Extension mengikut pemetaan sedia ada: pegawai sahaja.
-                if (type !== 'extension') {
-                    addStaffProcess(row, rowIndex, type, row.clerkName, 'Kerani', row.clerkDays);
-                }
+                // Semua proses dikira mengikut nama dan tempoh peringkat yang tersedia.
+                // Extension kekal khusus kepada peringkat Pegawai.
+                if (type !== 'extension') addStaffProcess(row, rowIndex, type, row.clerkName, 'Kerani', row.clerkDays);
                 addStaffProcess(row, rowIndex, type, row.officerName, 'Pegawai', row.officerDays);
             });
 
             const staffRows = Array.from(staffMap.values())
                 .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, 'ms') || a.role.localeCompare(b.role));
-
             const sum = key => staffRows.reduce((total, staff) => total + staff[key], 0);
             const setText = (id, value) => {
                 const element = document.getElementById(id);
@@ -1856,21 +1865,16 @@
             if (tableCount) tableCount.textContent = staffRows.length.toLocaleString('ms-MY') + ' staf';
             const emptyChart = document.getElementById('staffPerfChartEmpty');
             if (!staffRows.length) {
-                body.innerHTML = '<tr><td colspan="12" class="py-8 text-center text-slate-400">Tiada rekod prestasi untuk penapis yang dipilih.</td></tr>';
+                body.innerHTML = '<tr><td colspan="17" class="py-8 text-center text-slate-400">Tiada rekod prestasi untuk penapis yang dipilih.</td></tr>';
                 if (emptyChart) emptyChart.classList.remove('hidden');
             } else {
                 if (emptyChart) emptyChart.classList.add('hidden');
                 staffRows.forEach((staff, index) => {
                     const tr = document.createElement('tr');
                     tr.className = index % 2 ? 'bg-slate-50/70 hover:bg-rose-50/40' : 'bg-white hover:bg-rose-50/40';
-                    const isClerk = staff.role === 'Kerani';
                     const values = [
                         String(index + 1), staff.name, staff.role,
-                        (isClerk ? staff.er : 0).toLocaleString('ms-MY'),
-                        (!isClerk ? staff.er : 0).toLocaleString('ms-MY'),
-                        (isClerk ? staff.pr : 0).toLocaleString('ms-MY'),
-                        (!isClerk ? staff.pr : 0).toLocaleString('ms-MY'),
-                        (!isClerk ? staff.extension : 0).toLocaleString('ms-MY'),
+                        ...processDefs.map(def => staff[def.key].toLocaleString('ms-MY')),
                         staff.total.toLocaleString('ms-MY'),
                         staff.d1_7.toLocaleString('ms-MY'), staff.d8_14.toLocaleString('ms-MY'),
                         staff.dgt15.toLocaleString('ms-MY')
@@ -1878,10 +1882,10 @@
                     values.forEach((value, cellIndex) => {
                         const td = document.createElement('td');
                         td.className = 'py-3 px-4 ' + (cellIndex >= 3 ? 'text-right tabular-nums ' : '') +
-                            (cellIndex === 8 ? 'font-extrabold text-rose-800 bg-rose-50/50 ' : '') +
-                            (cellIndex === 9 ? 'bg-blue-50/40 ' : '') +
-                            (cellIndex === 10 ? 'bg-amber-50/40 ' : '') +
-                            (cellIndex === 11 ? 'bg-emerald-50/40 ' : '');
+                            (cellIndex === 13 ? 'font-extrabold text-rose-800 bg-rose-50/50 ' : '') +
+                            (cellIndex === 14 ? 'bg-blue-50/40 ' : '') +
+                            (cellIndex === 15 ? 'bg-amber-50/40 ' : '') +
+                            (cellIndex === 16 ? 'bg-emerald-50/40 ' : '');
                         td.textContent = value;
                         tr.appendChild(td);
                     });
@@ -1900,30 +1904,14 @@
                         type: 'bar',
                         data: {
                             labels: staffRows.map(staff => staff.name + ' (' + staff.role + ')'),
-                            datasets: [{
-                                label: 'Jumlah proses',
-                                data: staffRows.map(staff => staff.total),
-                                backgroundColor: '#7A1315',
-                                borderRadius: 5,
-                                maxBarThickness: 24
-                            }]
+                            datasets: [{ label: 'Jumlah proses', data: staffRows.map(staff => staff.total), backgroundColor: '#7A1315', borderRadius: 5, maxBarThickness: 24 }]
                         },
                         options: {
-                            indexAxis: 'y',
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            animation: false,
-                            scales: {
-                                x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f1f5f9' } },
-                                y: { grid: { display: false }, ticks: { font: { size: 10 } } }
-                            },
+                            indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: false,
+                            scales: { x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f1f5f9' } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } },
                             plugins: {
                                 legend: { display: false },
-                                datalabels: {
-                                    anchor: 'end', align: 'right', offset: 3,
-                                    color: '#334155', font: { weight: 'bold', size: 10 },
-                                    formatter: value => value
-                                },
+                                datalabels: { anchor: 'end', align: 'right', offset: 3, color: '#334155', font: { weight: 'bold', size: 10 }, formatter: value => value },
                                 tooltip: { callbacks: { label: context => 'Jumlah proses: ' + context.raw } }
                             }
                         }
