@@ -1986,8 +1986,10 @@
             const targetKey = String(staffName || '').trim().toLowerCase().replace(/\\s+/g, ' ');
             const records = getGlobalFilterMatchedProcessingRecords('all', rawStaffPerformanceRecords);
             const summary = new Map();
+            // Selaraskan tapisan rekod pendua dengan jadual utama Prestasi Staf.
+            const seenRecordStaff = new Set();
 
-            records.forEach(row => {
+            records.forEach((row, rowIndex) => {
                 const def = findProcess(row.source);
                 if (!def) return;
                 const candidates = [];
@@ -1999,6 +2001,11 @@
                     const personKey = String(person.name || '').trim().toLowerCase().replace(/\\s+/g, ' ');
                     const days = Number(person.days) || 0;
                     if (personKey !== targetKey || person.role !== role || !personKey || personKey === '0' || days <= 0) return;
+                    const dedupeKey = row.ref
+                        ? [String(row.ref).trim().toLowerCase(), def.key, personKey, person.role.toLowerCase()].join('|')
+                        : 'row-' + rowIndex + '|' + def.key + '|' + personKey + '|' + person.role.toLowerCase();
+                    if (seenRecordStaff.has(dedupeKey)) return;
+                    seenRecordStaff.add(dedupeKey);
                     if (!summary.has(def.key)) summary.set(def.key, { process: def.label, d1_7: 0, d8_14: 0, dgt15: 0, total: 0 });
                     const item = summary.get(def.key);
                     item.total += 1;
