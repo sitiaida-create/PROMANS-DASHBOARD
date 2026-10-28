@@ -1844,9 +1844,9 @@
                 if (roleFilter === 'pegawai' && role !== 'Pegawai') return;
 
                 const staffKey = staffName.toLowerCase().replace(/\\s+/g, ' ');
-                const dedupeKey = row.ref
-                    ? [String(row.ref).trim().toLowerCase(), type, staffKey, role.toLowerCase()].join('|')
-                    : 'row-' + rowIndex + '|' + type + '|' + staffKey + '|' + role.toLowerCase();
+                // Selaraskan dengan pop-up: rekod hanya dianggap pendua jika staf/peranan/proses
+                // muncul lebih daripada sekali pada baris sumber yang sama.
+                const dedupeKey = 'row-' + rowIndex + '|' + type + '|' + staffKey + '|' + role.toLowerCase();
                 if (seenRecordStaff.has(dedupeKey)) return;
                 seenRecordStaff.add(dedupeKey);
 
