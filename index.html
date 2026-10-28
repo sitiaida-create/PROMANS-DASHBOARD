@@ -897,11 +897,11 @@
                     <thead class="sticky top-0 bg-slate-100 text-slate-600">
                         <tr>
                             <th class="py-3 px-4 font-bold">Bil.</th>
-                            <th class="py-3 px-4 font-bold">Proses</th>
-                            <th class="py-3 px-4 font-bold">No. Rekod</th>
-                            <th class="py-3 px-4 font-bold">Tarikh</th>
-                            <th class="py-3 px-4 text-right font-bold">Tempoh (hari)</th>
-                            <th class="py-3 px-4 font-bold">Status</th>
+                            <th class="py-3 px-4 font-bold">Jenis Proses</th>
+                            <th class="py-3 px-4 text-right font-bold bg-blue-50">1–7 hari</th>
+                            <th class="py-3 px-4 text-right font-bold bg-amber-50">8–14 hari</th>
+                            <th class="py-3 px-4 text-right font-bold bg-emerald-50">&gt;15 hari</th>
+                            <th class="py-3 px-4 text-right font-bold">Jumlah Rekod</th>
                         </tr>
                     </thead>
                     <tbody id="staffBreakdownTableBody" class="divide-y divide-slate-100">
@@ -1988,31 +1988,31 @@
             };
             const targetKey = String(staffName || '').trim().toLowerCase().replace(/\\s+/g, ' ');
             const records = getGlobalFilterMatchedProcessingRecords('all', rawStaffPerformanceRecords);
-            const details = [];
+            const summary = new Map();
 
-            records.forEach((row, rowIndex) => {
+            records.forEach(row => {
                 const def = findProcess(row.source);
                 if (!def) return;
                 const candidates = [];
-                if (def.key !== 'extension') candidates.push({ name: row.clerkName, role: 'Kerani', days: row.clerkDays, date: row.clerkDate || row.clerkReceivedDate || row.clerkForwardedDate });
-                candidates.push({ name: row.officerName, role: 'Pegawai', days: row.officerDays, date: row.officerDate || row.officerApprovalDate });
+                if (def.key !== 'extension') candidates.push({ name: row.clerkName, role: 'Kerani', days: row.clerkDays });
+                candidates.push({ name: row.officerName, role: 'Pegawai', days: row.officerDays });
                 candidates.forEach(person => {
                     const personKey = String(person.name || '').trim().toLowerCase().replace(/\\s+/g, ' ');
                     const days = Number(person.days) || 0;
                     if (personKey !== targetKey || person.role !== role || !personKey || personKey === '0' || days <= 0) return;
-                    details.push({
-                        process: def.label,
-                        ref: String(row.ref || ('Rekod ' + (rowIndex + 1))),
-                        date: String(person.date || row.month || '—'),
-                        days,
-                        status: String(row.status || 'Tidak dinyatakan')
-                    });
+                    if (!summary.has(def.key)) summary.set(def.key, { process: def.label, d1_7: 0, d8_14: 0, dgt15: 0, total: 0 });
+                    const item = summary.get(def.key);
+                    item.total += 1;
+                    if (days >= 1 && days <= 7) item.d1_7 += 1;
+                    else if (days >= 8 && days <= 14) item.d8_14 += 1;
+                    else if (days > 15) item.dgt15 += 1;
                 });
             });
 
-            details.sort((a, b) => a.process.localeCompare(b.process, 'ms') || a.ref.localeCompare(b.ref, 'ms'));
+            const details = Array.from(summary.values()).sort((a, b) => a.process.localeCompare(b.process, 'ms'));
+            const totalRecords = details.reduce((sum, item) => sum + item.total, 0);
             document.getElementById('staffBreakdownTitle').textContent = 'Pecahan Proses: ' + staffName + ' (' + role + ')';
-            document.getElementById('staffBreakdownSummary').textContent = details.length.toLocaleString('ms-MY') + ' rekod proses berdasarkan penapis Tahun/Bulan semasa.';
+            document.getElementById('staffBreakdownSummary').textContent = totalRecords.toLocaleString('ms-MY') + ' rekod proses mengikut kategori tempoh berdasarkan penapis Tahun/Bulan semasa.';
             body.innerHTML = '';
             if (!details.length) {
                 body.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-slate-400">Tiada rekod terperinci untuk staf ini bagi penapis yang dipilih.</td></tr>';
@@ -2020,14 +2020,29 @@
                 details.forEach((detail, index) => {
                     const tr = document.createElement('tr');
                     tr.className = index % 2 ? 'bg-slate-50/70' : 'bg-white';
-                    [String(index + 1), detail.process, detail.ref, detail.date, detail.days.toLocaleString('ms-MY'), detail.status].forEach((value, cellIndex) => {
+                    [String(index + 1), detail.process, detail.d1_7.toLocaleString('ms-MY'), detail.d8_14.toLocaleString('ms-MY'), detail.dgt15.toLocaleString('ms-MY'), detail.total.toLocaleString('ms-MY')].forEach((value, cellIndex) => {
                         const td = document.createElement('td');
-                        td.className = 'py-3 px-4 ' + (cellIndex === 4 ? 'text-right tabular-nums font-semibold' : '');
+                        td.className = 'py-3 px-4 ' + (cellIndex >= 2 ? 'text-right tabular-nums font-semibold' : '');
                         td.textContent = value;
                         tr.appendChild(td);
                     });
                     body.appendChild(tr);
                 });
+                const totals = details.reduce((acc, item) => ({
+                    d1_7: acc.d1_7 + item.d1_7,
+                    d8_14: acc.d8_14 + item.d8_14,
+                    dgt15: acc.dgt15 + item.dgt15,
+                    total: acc.total + item.total
+                }), { d1_7: 0, d8_14: 0, dgt15: 0, total: 0 });
+                const tr = document.createElement('tr');
+                tr.className = 'bg-slate-100 font-bold';
+                ['Jumlah', '', totals.d1_7.toLocaleString('ms-MY'), totals.d8_14.toLocaleString('ms-MY'), totals.dgt15.toLocaleString('ms-MY'), totals.total.toLocaleString('ms-MY')].forEach((value, cellIndex) => {
+                    const td = document.createElement('td');
+                    td.className = 'py-3 px-4 ' + (cellIndex >= 2 ? 'text-right tabular-nums' : '');
+                    td.textContent = value;
+                    tr.appendChild(td);
+                });
+                body.appendChild(tr);
             }
             modal.classList.remove('hidden');
         }
