@@ -574,7 +574,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <p class="px-4 py-3 text-[11px] text-slate-500 border-t border-slate-100">Nota: kiraan berdasarkan nama staf dan tempoh proses yang sah. Extension dipaparkan di bawah Pegawai sahaja. Tempoh tepat 15 hari dikira dalam jumlah keseluruhan tetapi tidak termasuk dalam kategori 1–7 hari, 8–14 hari atau &gt;15 hari.</p>
+                    <p class="px-4 py-3 text-[11px] text-slate-500 border-t border-slate-100">Nota: kiraan berdasarkan nama staf dan tempoh proses yang sah. Extension dipaparkan di bawah Pegawai sahaja. Tempoh tepat 15 hari dikira dalam kategori &gt;15 hari bersama tempoh melebihi 15 hari.</p>
                 </div>
             </div>
 
@@ -1861,7 +1861,7 @@
                 staff[type]++;
                 if (days >= 1 && days <= 7) staff.d1_7++;
                 else if (days >= 8 && days <= 14) staff.d8_14++;
-                else if (days > 15) staff.dgt15++;
+                else if (days >= 15) staff.dgt15++;
             };
 
             records.forEach((row, rowIndex) => {
@@ -2000,7 +2000,7 @@
                     item.total += 1;
                     if (days >= 1 && days <= 7) item.d1_7 += 1;
                     else if (days >= 8 && days <= 14) item.d8_14 += 1;
-                    else if (days > 15) item.dgt15 += 1;
+                    else if (days >= 15) item.dgt15 += 1;
                 });
             });
 
