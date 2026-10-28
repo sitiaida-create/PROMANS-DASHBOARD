@@ -490,7 +490,7 @@
                 <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3">
                     <div>
                         <h2 class="text-xl font-extrabold text-slate-900">Prestasi Staf</h2>
-                        <p class="text-sm text-slate-500 mt-1">Keseluruhan proses yang dikendalikan oleh setiap staf, diasingkan mengikut peranan kerani dan pegawai, serta pecahan ER, PR dan Extension.</p>
+                        <p class="text-sm text-slate-500 mt-1">Keseluruhan proses yang dikendalikan oleh setiap staf, diasingkan mengikut peranan kerani dan pegawai.</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                         <label for="staffPerfRole" class="text-xs font-semibold text-slate-600">Peranan:</label>
@@ -506,7 +506,7 @@
                     Gunakan penapis Tahun dan Bulan di bahagian atas dashboard. Analisis ini menggabungkan semua siri dan tidak terikat pada penapis Jenis Proses.
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
                         <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Jumlah Proses Staf</p>
                         <p id="staffPerfTotal" class="text-2xl font-extrabold text-slate-900 mt-2">0</p>
@@ -514,18 +514,6 @@
                     <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
                         <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Staf Terlibat</p>
                         <p id="staffPerfCount" class="text-2xl font-extrabold text-slate-900 mt-2">0</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">ER</p>
-                        <p id="staffPerfER" class="text-2xl font-extrabold text-slate-900 mt-2">0</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">PR</p>
-                        <p id="staffPerfPR" class="text-2xl font-extrabold text-slate-900 mt-2">0</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Extension</p>
-                        <p id="staffPerfExtension" class="text-2xl font-extrabold text-slate-900 mt-2">0</p>
                     </div>
                 </div>
 
@@ -1886,9 +1874,6 @@
             };
             setText('staffPerfTotal', sum('total'));
             setText('staffPerfCount', staffRows.length);
-            setText('staffPerfER', sum('er'));
-            setText('staffPerfPR', sum('pr'));
-            setText('staffPerfExtension', sum('extension'));
 
             body.innerHTML = '';
             const tableCount = document.getElementById('staffPerfTableCount');
