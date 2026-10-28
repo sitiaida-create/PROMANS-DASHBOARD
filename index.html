@@ -222,16 +222,16 @@
                         </label>
                         <select id="filterProses" onchange="applyGlobalFilters()" class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-utm-maroon flex-1 cursor-pointer">
                             <option value="all">Semua Jenis Proses</option>
-                            <option value="Aktiviti dalam negara">AKTIVITI DN</option>
-                            <option value="Aktiviti luar negara">AKTIVITI LN</option>
-                            <option value="Pelantikan RA/RO">ARORARO</option>
-                            <option value="Pelantikan GRA/SRA">RSGSPB</option>
-                            <option value="Tuntutan SRA">CLAIM</option>
-                            <option value="Semakan End Report">ER</option>
-                            <option value="Semakan Progress Report">PR</option>
-                            <option value="Pengaktifan Geran">PROPOSAL</option>
-                            <option value="Pertukaran ketua/ahli projek">MEMBER</option>
-                            <option value="Perlanjutan tempoh">EXTENSION</option>
+                            <option value="Aktiviti dalam negara">Aktiviti Dalam Negara</option>
+                            <option value="Aktiviti luar negara">Aktiviti Luar Negara</option>
+                            <option value="Pelantikan RA/RO">Pelantikan RA/RO</option>
+                            <option value="Pelantikan GRA/SRA">Pelantikan GRA/SRA</option>
+                            <option value="Tuntutan SRA">Tuntutan SRA</option>
+                            <option value="Semakan End Report">Semakan End Report</option>
+                            <option value="Semakan Progress Report">Semakan Progress Report</option>
+                            <option value="Pengaktifan Geran">Pengaktifan Geran</option>
+                            <option value="Pertukaran ketua/ahli projek">Pertukaran Ketua/Ahli Projek</option>
+                            <option value="Perlanjutan tempoh">Pelanjutan Tempoh</option>
                         </select>
                     </div>
 
@@ -1436,7 +1436,7 @@
             activeModalPeriodFilter = initialPeriod;
             activeModalCasesList = generateCasesForProcess(processName);
 
-            document.getElementById('modalProcessTitle').innerText = processName;
+            document.getElementById('modalProcessTitle').innerText = getProcessDisplayName(processName);
             const showPptColumn = /aktiviti\s*(luar\s*negara|ln)\b/i.test(String(processName || '').trim());
             document.querySelectorAll('#processCasesModal .ppt-column').forEach(el => {
                 el.classList.toggle('hidden', !showPptColumn);
@@ -2255,7 +2255,7 @@
                 p2: denominator ? c2 / denominator * 100 : 0, p3: denominator ? c3 / denominator * 100 : 0 };
         }
 
-        function populateTables() {
+        // Nama paparan sahaja; nilai proses asal dikekalkan untuk penapisan dan pengiraan.\n        function getProcessDisplayName(source) {\n            const normalized = String(source || '').toLowerCase().replace(/[^a-z0-9]/g, '');\n            const displayNames = [\n                { label: 'Aktiviti Dalam Negara', aliases: ['aktivitidalamnegara', 'aktivitidn'] },\n                { label: 'Aktiviti Luar Negara', aliases: ['aktivitiluarnegara', 'aktivitiln'] },\n                { label: 'Pelantikan RA/RO', aliases: ['aroraro', 'pelantikanraro', 'pelantikanraroro'] },\n                { label: 'Pelantikan GRA/SRA', aliases: ['rsgspb', 'pelantikangrasra'] },\n                { label: 'Tuntutan SRA', aliases: ['claim', 'tuntutansra'] },\n                { label: 'Semakan End Report', aliases: ['semakanendreport', 'endreport', 'er'] },\n                { label: 'Semakan Progress Report', aliases: ['semakanprogressreport', 'progressreport', 'pr'] },\n                { label: 'Pengaktifan Geran', aliases: ['pengaktifangeran', 'proposal'] },\n                { label: 'Pertukaran Ketua/Ahli Projek', aliases: ['pertukaranketuaahliprojek', 'member'] },\n                { label: 'Pelanjutan Tempoh', aliases: ['perlanjutantempoh', 'pelanjutantempoh', 'extension'] }\n            ];\n            const match = displayNames.find(item => item.aliases.some(alias => normalized === alias || (alias.length >= 5 && normalized.includes(alias))));\n            return match ? match.label : String(source || '');\n        }\n\n        function populateTables() {
             // 1. Jadual Helaian 1: Kecekapan
             const tBodyJan = document.getElementById('janOgosTableBody');
             tBodyJan.innerHTML = '';
@@ -2300,7 +2300,7 @@
                     tr.innerHTML = `
                         <td class="py-3 px-4 font-semibold text-slate-900 group-hover:text-utm-maroon" onclick="openProcessCasesModal('${r.proses}', 'all')">
                             <div class="flex items-center space-x-1.5">
-                                <span>${r.proses}</span>
+                                <span>${getProcessDisplayName(r.proses)}</span>
                                 <i data-lucide="external-link" class="w-3 h-3 text-slate-400 group-hover:text-utm-maroon"></i>
                             </div>
                         </td>
