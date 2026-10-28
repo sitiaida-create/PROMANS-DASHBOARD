@@ -1216,6 +1216,7 @@
         let activeModalPeriodFilter = "all";
         let activeModalCasesList = [];
         let rawProcessingRecords = [];
+        let rawStaffPerformanceRecords = [];
 
         function normalizeProcessLabel(value) {
             return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -1252,7 +1253,7 @@
                 group.some(alias => matchesAlias(b, alias))
             );
         }
-        function getGlobalFilterMatchedProcessingRecords(processName = '') {
+        function getGlobalFilterMatchedProcessingRecords(processName = '', sourceRecords = rawProcessingRecords) {
             const normalize = value => String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
             const yearFilter = document.getElementById('filterTahun')?.value || 'all';
             const monthFilter = document.getElementById('filterBulan')?.value || 'all';
@@ -1292,7 +1293,7 @@
                 return monthParts;
             };
 
-            return rawProcessingRecords.filter(row => {
+            return sourceRecords.filter(row => {
                 if (wantedProcess && wantedProcess !== 'all' && !processLabelsMatch(row.source, wantedProcess)) return false;
                 const parts = getApplicationDateParts(row);
                 if (yearFilter !== 'all' && parts.year !== yearFilter) return false;
@@ -1781,7 +1782,7 @@
             if (!body) return;
 
             const roleFilter = document.getElementById('staffPerfRole')?.value || 'all';
-            const records = getGlobalFilterMatchedProcessingRecords('all');
+            const records = getGlobalFilterMatchedProcessingRecords('all', rawStaffPerformanceRecords);
             const staffMap = new Map();
             const seenRecordStaff = new Set();
 
@@ -1793,43 +1794,49 @@
                 return '';
             };
 
-            records.forEach((row, rowIndex) => {
-                const type = processType(row.source);
-                if (!type) return;
+            const addStaffProcess = (row, rowIndex, type, staffNameValue, role, daysValue) => {
+                const staffName = String(staffNameValue || '').trim();
+                const days = Number(daysValue) || 0;
+                if (!staffName || staffName === '0' || days <= 0) return;
+                if (roleFilter === 'kerani' && role !== 'Kerani') return;
+                if (roleFilter === 'pegawai' && role !== 'Pegawai') return;
 
-                // Selaras dengan pemetaan modul sedia ada: ER, PR dan Extension
-                // dikendalikan pada peringkat pegawai.
-                const staffName = String(row.officerName || '').trim();
-                const days = Number(row.officerDays) || 0;
-                if (!hasValidOfficerName(staffName) || days <= 0) return;
-                if (roleFilter === 'kerani') return;
-
-                // Elakkan kiraan berganda jika rekod dengan ID sama muncul berulang
-                // dalam sumber siri; rekod tanpa ID dikekalkan sebagai rekod berasingan.
                 const staffKey = staffName.toLowerCase().replace(/\s+/g, ' ');
                 const dedupeKey = row.ref
-                    ? [String(row.ref).trim().toLowerCase(), type, staffKey, 'pegawai'].join('|')
-                    : 'row-' + rowIndex;
+                    ? [String(row.ref).trim().toLowerCase(), type, staffKey, role.toLowerCase()].join('|')
+                    : 'row-' + rowIndex + '|' + role.toLowerCase();
                 if (seenRecordStaff.has(dedupeKey)) return;
                 seenRecordStaff.add(dedupeKey);
 
-                if (!staffMap.has(staffKey)) {
-                    staffMap.set(staffKey, {
-                        name: staffName, role: 'Pegawai', er: 0, pr: 0, extension: 0,
+                const mapKey = role.toLowerCase() + '|' + staffKey;
+                if (!staffMap.has(mapKey)) {
+                    staffMap.set(mapKey, {
+                        name: staffName, role, er: 0, pr: 0, extension: 0,
                         total: 0, d1_7: 0, d8_14: 0, dgt15: 0
                     });
                 }
-                const staff = staffMap.get(staffKey);
+                const staff = staffMap.get(mapKey);
                 staff.total++;
                 staff[type]++;
                 if (days >= 1 && days <= 7) staff.d1_7++;
                 else if (days >= 8 && days <= 14) staff.d8_14++;
                 else if (days > 15) staff.dgt15++;
+            };
+
+            records.forEach((row, rowIndex) => {
+                const type = processType(row.source);
+                if (!type) return;
+
+                // ER/PR dikira pada peringkat kerani jika maklumat tindakan kerani sah.
+                // Extension mengikut pemetaan sedia ada: pegawai sahaja.
+                if (type !== 'extension') {
+                    addStaffProcess(row, rowIndex, type, row.clerkName, 'Kerani', row.clerkDays);
+                }
+                addStaffProcess(row, rowIndex, type, row.officerName, 'Pegawai', row.officerDays);
             });
 
             const staffRows = Array.from(staffMap.values())
-                .filter(staff => roleFilter === 'all' || roleFilter === 'pegawai')
-                .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, 'ms'));
+                .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, 'ms') || a.role.localeCompare(b.role));
 
             const sum = key => staffRows.reduce((total, staff) => total + staff[key], 0);
             const setText = (id, value) => {
@@ -2577,7 +2584,7 @@
                             return Number.isFinite(value) ? value : 0;
                         };
 
-                        const calcRows = dataRows.map(row => ({
+                        const parsedCalcRows = dataRows.map(row => ({
                             source: getFirst(row, ['source', 'sumber', 'proses', 'nama proses', 'kategori proses']),
                             month: getFirst(row, ['month', 'bulan']),
                             clerkDate: getFirst(row, ['kerani_start_date', 'kerani start date', 'tarikh_terima', 'tarikh terima']),
@@ -2594,7 +2601,11 @@
                             officerDays: num(row, 'tempoh_pegawai', 'tempoh pegawai', 'tempoh pegawai (hari)', 'hari pegawai'),
                             totalDays: num(row, 'total_processing_days', 'total processing days', 'jumlah hari pemprosesan'),
                             status: getFirst(row, ['status', 'status permohonan', 'status terkini']) || 'Draft'
-                        })).filter(row => row.source || row.ref).map(row => {
+                        })).filter(row => row.source || row.ref);
+                        // Simpan salinan asal untuk analisis prestasi supaya data peringkat kerani ER/PR
+                        // tidak hilang apabila paparan kecekapan sedia ada menormalkan ER/PR/Extension kepada pegawai sahaja.
+                        rawStaffPerformanceRecords = parsedCalcRows.map(row => ({ ...row }));
+                        const calcRows = parsedCalcRows.map(row => {
                             // Extension/Perlanjutan, Progress Report dan End Report hanya melalui semakan pegawai.
                             if (/extension|perlanjutan|progress\s*report|end\s*report/i.test(String(row.source || ''))) {
                                 return {
