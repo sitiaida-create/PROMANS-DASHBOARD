@@ -1871,6 +1871,8 @@
                 // Extension kekal khusus kepada peringkat Pegawai.
                 if (type !== 'extension') addStaffProcess(row, rowIndex, type, row.clerkName, 'Kerani', row.clerkDays);
                 addStaffProcess(row, rowIndex, type, row.officerName, 'Pegawai', row.officerDays);
+                // Aktiviti LN: PPT juga dikira sebagai Pegawai dalam Prestasi Staf.
+                if (type === 'ln') addStaffProcess(row, rowIndex, type, row.pptName, 'Pegawai', row.pptDays);
             });
 
             const staffRows = Array.from(staffMap.values())
@@ -1991,6 +1993,8 @@
                 const candidates = [];
                 if (def.key !== 'extension') candidates.push({ name: row.clerkName, role: 'Kerani', days: row.clerkDays });
                 candidates.push({ name: row.officerName, role: 'Pegawai', days: row.officerDays });
+                // Aktiviti LN: PPT juga dikira sebagai Pegawai dalam pecahan proses.
+                if (def.key === 'ln') candidates.push({ name: row.pptName, role: 'Pegawai', days: row.pptDays });
                 candidates.forEach(person => {
                     const personKey = String(person.name || '').trim().toLowerCase().replace(/\\s+/g, ' ');
                     const days = Number(person.days) || 0;
